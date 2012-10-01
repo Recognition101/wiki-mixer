@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>omni-mix-r</title>
+        <script type="text/javascript" src="./scripts.js"></script>
+        <script type="text/javascript" src="./data/ingData.js"></script>
+        <script type="text/javascript" src="./data/optiData.js"></script>
+        <link type="text/css" rel="stylesheet" title="Basic styles" href="stylesheet.css" />
+    </head>
+    <body>
+        <input type="CHECKBOX" id="settingsVisible" class="pageState"/>
+        <input type="CHECKBOX" id="settingsIba" class="pageState"/>
+        <input type="CHECKBOX" id="settingsIncomplete" class="pageState" checked/>
+        <input type="CHECKBOX" id="settingsPictures" class="pageState" checked/>
+        <div class="overlay"></div>
+
+        <header>
+            omni &#183; mix &#183; r
+            <label for="settingsVisible"><button class="showSettings"><p>&#x2699;</p></button></label>
+        </header>
+
+        <div class="hpanels">
+            <div class="ingredients">
+                <button>Clear</button>
+                <ul class="ingredientList" onclick=""></ul>
+            </div>
+            <div class="recipeList">
+            </div>
+            <div class="recipes">
+            </div>
+        </div>
+
+        <div class="settings"><div>
+            <h1>settings</h1>
+            <h2>Recipe Display Settings</h2>
+            <ul class="optionPanel" onclick="">
+                <li class="checkbox">
+                    <label for="settingsIba"><label>
+                        <div class="checkState"><div></div></div><span>Must Be IBA</span>
+                    </label></label>
+                </li>
+                <li class="checkbox">
+                    <label for="settingsIncomplete"><label>
+                        <div class="checkState"></div><span>Show Incomplete</span>
+                    </label></label>
+                </li>
+                <li class="checkbox">
+                    <label for="settingsPictures"><label>
+                        <div class="checkState"></div><span>Show Pictures</span>
+                    </label></label>
+                </li>
+                <li class="selectbox">
+                    <label for="setSortRecipe">Sort Incomplete By:</label>
+                    <select id="setSortRecipe" class="setSort">
+                        <option value="0"># Needed</option>
+                        <option value="1">% Owned</option>
+                    </select>
+                </li>
+            </ul>
+            <label for="settingsVisible"><button><p>back</p></button></label>
+        </div></div>
+    </body>
+</html>

@@ -1,0 +1,585 @@
+@import 'nib'
+
+/** TODO: add http://lea.verou.me/2012/04/background-attachment-local/ **/
+/** ---- ADDITIONAL CSS3 FUNCTIONS ---- **/
+display()
+    if arguments == box
+        display: -webkit-box;
+        display: -moz-box;
+        display: box;
+    else
+        display: arguments;
+
+/** ---- GENERIC OBJECTS ---- **/
+shadowDark =  0px  1px 1px rgba(255,255,255,0.7)
+shadowLight = 0px -1px 1px rgba(0,0,0,0.6)
+colorGreyLight = #F5F5F5
+colorGreyMid = #DBDBDB
+colorGreyDark = #909090
+colorHighlightMid = #D2D2FF
+colorHighlightLight = #F0F0F5
+colorHighlightDark = #303070
+fsMid = 14px
+fsLarge = 16px
+
+body
+    font-size: 14px
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif
+
+*
+    margin: 0
+    padding: 0
+
+button
+    display: block
+    margin: 10px
+    border: 2px solid colorGreyDark
+    background-color: colorGreyLight
+    border-radius: 10px
+    font-size: fsLarge
+    padding: 5px 15px
+    text-shadow: shadowDark
+    background-image: linear-gradient(bottom, colorGreyMid, colorGreyLight)
+    cursor: pointer
+
+button:active
+    background-image: linear-gradient(bottom, colorHighlightMid, colorHighlightLight)
+
+label
+    cursor: pointer
+
+#settingsPictures:not(:checked) ~ img,
+#settingsPictures:not(:checked) ~ * img
+    display: none
+
+/** ---- TOGGLE SLIDER ---- **/
+tsWidthRaw = 77
+tsHeightRaw = 26
+tsBorderRadius = 15px
+tsGlossHeight = 15px
+
+tsFirstQuarter = (tsHeightRaw/2 / tsWidthRaw * 100)%
+tsThirdQuarter = (100 - tsHeightRaw/2 / tsWidthRaw * 100)%
+tsWidth = (tsWidthRaw)px
+tsHeight= (tsHeightRaw)px
+tsGlossMargin = round(0.05 * tsWidth)
+tsOnOffY = (round(0.5 * tsHeightRaw))px
+tsOnX = (round(0.2 * tsWidthRaw))px
+tsOffX = (round(0.40 * tsWidthRaw))px
+tsOnOffFontSize = round(0.7 * tsHeight)
+
+.toggleSlide,
+.toggleSlide > div,
+.toggleSlide .shadowGloss:before,
+.toggleSlide .shadowGloss:after,
+.toggleSlide .textBgrnd:before,
+.toggleSlide .textBgrnd:after
+    width: tsWidth
+    height: tsHeight
+    cursor: pointer
+    display: block
+    overflow: hidden
+    border-radius: tsBorderRadius
+
+.toggleSlide.animated > div > div
+    transition: transform 0.5s ease-in-out
+
+.toggleSlide
+    border: 1px solid #bdbdbd
+    border-color: #878787 #999999 #bdbdbd
+    background-image: linear-gradient(right, #EEEEEE, 50% #EEEEEE, 50% #1582E7, #1582E7)
+
+/** Mask **/
+.toggleSlide > div
+    -webkit-mask-image:
+        -webkit-gradient(radial, tsFirstQuarter center,0, tsFirstQuarter center, 
+            (tsHeightRaw/2), from(black), color-stop(99%, black),to(rgba(0,0,0,0))),
+        -webkit-gradient(linear, left top, right top,
+            from(transparent),
+            color-stop(tsFirstQuarter, transparent), color-stop(tsFirstQuarter, black),
+            color-stop(tsThirdQuarter, black), color-stop(tsThirdQuarter, transparent),
+            to(transparent)),
+        -webkit-gradient(radial, tsThirdQuarter center,0, tsThirdQuarter center, 
+            (tsHeightRaw/2), from(black), color-stop(99%, black),to(rgba(0,0,0,0)))
+
+.toggleSlide:not(.checked) .textBgrnd
+    transform translate(-1 * (tsWidth - tsHeight), 0)
+.toggleSlide:not(.checked) .knob
+    transform translate(0, -2*tsHeight - tsGlossHeight)
+
+.toggleSlide .textBgrnd
+    width: (tsWidth * 2) - tsHeight
+    height: tsHeight
+    background-image: linear-gradient(right, #EEEEEE, 50% #EEEEEE, 50% #1582E7, #1582E7)
+    transform: translate(0, 0)
+
+.toggleSlide .textBgrnd:before,
+.toggleSlide .textBgrnd:after
+    height: 0
+    line-height: 0
+    overflow: visible
+    font-weight: bold
+    font-size: tsOnOffFontSize
+
+.toggleSlide .textBgrnd:before
+    content: "ON"
+    color: white
+    text-shadow: 0px -1px 1px rgba(0,0,0,0.4)
+    transform: translate(tsOnX, tsOnOffY)
+
+.toggleSlide .textBgrnd:after
+    content: "OFF"
+    color: #7f7f7f
+    text-shadow: 0px 1px 1px rgba(255,255,255,0.4)
+    transform: translate(tsWidth - tsHeight + tsOffX, tsOnOffY)
+
+/** shadow **/
+.toggleSlide .shadowGloss:before
+    content: " "
+    transform: translate(0, -1*tsHeight)
+    box-shadow: inset 0px 5px 7px -4px rgba(0,0,0,0.4);
+
+/** gloss **/
+.toggleSlide .shadowGloss:after
+    content: " "
+    transform: translate(tsGlossMargin, -1*tsHeight - tsGlossHeight)
+    width: tsWidth - tsGlossMargin * 2
+    height: tsGlossHeight
+    background-image: linear-gradient(top, rgba(255,255,255,0.1), rgba(255,255,255, 0.4))
+
+.toggleSlide .knob
+    width: tsHeight
+    height: tsHeight
+    border-radius: tsBorderRadius
+    background-color: white
+    background-image: linear-gradient(top, #d1d1d1, #fefefe)
+    box-shadow: inset 0 2px 2px 0 rgba(255,255,255,0.4),
+        0 0 3px rgba(0,0,0,0.8);
+    transform: translate((tsWidth - tsHeight), -2*tsHeight - tsGlossHeight)
+
+/** ---- MAIN LAYOUT ---- **/
+html, body
+    height: 100%
+
+body
+    display: box
+    box-orient: vertical;
+
+.pageState
+    display: none
+
+header
+    background-image: linear-gradient(bottom, #6C9FA0, 50% #7FADAF, 50% #87B2B3, #B4CCCB)
+    border-bottom: 1px solid #2C3332
+    font-size: 18px
+    font-weight: bold
+    color: white
+    text-shadow: shadowLight
+    padding: 5px 15px
+
+.showSettings
+    absolute: top 0px right 10px
+    padding: 2px
+    margin: 1px
+    width:  32px
+    height: 31px
+
+    border: 2px solid colorGreyDark
+    border-radius: 7px
+
+.showSettings > *
+    relative: top -15px left 0px
+    font-size: 40px
+    color: rgba(colorGreyDark, 0.5)
+
+.overlay
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background-image: -webkit-gradient(radial,
+        center center, 0, center center, 800,
+        from(rgba(black ,0.3)),
+        to(rgba(black ,0.6)))
+    pointer-events: none
+    opacity: 0
+    transition: opacity 500ms linear
+
+#settingsVisible:checked ~ .overlay
+    pointer-events: auto;
+    opacity: 1;
+
+.hpanels
+    display: box
+    box-flex: 1
+    box-orient: horizontal
+
+/** ---- INGREDIENTS SIDEBAR ---- **/
+.ingredients
+    width: 275px
+    border-right: solid 1px colorGreyDark
+    overflow: scroll
+    background-image: -webkit-gradient(linear, left top, 0 10, from(colorGreyMid), to(rgba(colorGreyMid, 0.0)))
+    transform: translate(0, 0)
+    -webkit-overflow-scrolling: touch
+    -webkit-backface-visibility: hidden
+    -webkit-perspective: 1000
+    background-repeat: no-repeat;
+    background-color: white;
+    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
+
+.ingredients > button
+    padding: 5px 60px;
+    margin-left: 60px;
+
+ul.ingredientList > li:not(:last-child)
+    border-bottom: 1px solid #f5f5f5;
+
+ul.ingredientList > li:first-child
+    background-image: linear-gradient(top, colorGreyMid, 20% white, white)
+
+ul.ingredientList > li:first-child > label
+    padding-top: 12px;
+
+ul.ingredientList > li
+    background-color: white
+
+ul.ingredientList > li:nth-child(2n) {
+    background-color: colorGreyLight
+}
+ul.ingredientList > li
+    text-transform: capitalize
+    list-style-type: none
+    overflow: hidden
+    display: box
+    box-orient: horizontal
+
+ul.ingredientList > li .chkSymbol
+    font-size: 16px
+    width: 15px
+    height: 18px
+    border: 2px solid colorGreyLight
+    padding: 0px 0px 0px 3px
+    border-radius: 32px
+    box-shadow: 0px 1px 5px #888
+    color: white
+    text-shadow: shadowLight
+    opacity: 0
+    background-image: linear-gradient(top, #0FB20F, #9BF99B)
+    transform: translate(20px, 0px)
+    transition-property: opacity, -webkit-transform
+    transition-duration: 500ms, 500ms
+    transition-timing-function: ease-in-out, ease-out
+
+ul.ingredientList > li > .ingBgrnd
+    left: 0px; right: 0px;
+    top: 0px; bottom: 0px;
+    pointer-events: none;
+    transition: background-color 500ms ease-in-out;
+
+/** Three-State Toggle **/
+ul.ingredientList > li > *
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    user-select: none;
+
+ul.ingredientList > li > input,
+ul.ingredientList > li > label
+    display: none;
+    cursor: pointer;
+
+ul.ingredientList > li > label
+    padding: 7px 7px 7px 14px;
+    box-flex: 1;
+
+ul.ingredientList > li > input.ingNone:checked ~ label.ingHave,
+ul.ingredientList > li > input.ingHave:checked ~ label.ingNeed,
+ul.ingredientList > li > input.ingNeed:checked ~ label.ingNone
+    display: block;
+
+ul.ingredientList > li > input.ingNone:not(:checked) ~ label
+    color: colorHighlightDark;
+
+ul.ingredientList > li > input.ingNone:not(:checked) ~ .ingBgrnd
+    background-color: rgba(colorHighlightMid,0.2);
+
+.ingCheckState
+    display: box
+    box-orient: horizontal
+
+    height: 100%
+    width: 0px
+
+    transform: translate(0px, 0px)
+    cursor: default;
+    pointer-events: none
+.ftAnimateIng .ingCheckState
+    transition: transform 250ms ease-in-out
+
+ul.ingredientList > li > input.ingHave:checked ~ .ingCheckState
+    transform: translate(-34px, 0px)
+
+ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState
+    transform: translate(-68px, 0px)
+
+.ingCheckState > *
+    box-flex: 1
+    padding: 7px 17px
+    height: 100%
+    color: #999
+    text-shadow: shadowDark
+
+.ingCheckState > *:first-child
+    color: #6060AA
+    margin-right: 5px
+
+.ingCheckState > *:nth-child(2)
+    margin-top: 3px
+    padding: 3px 30px 3px 12px
+    border: 1px solid #AA9090
+    border-radius: 7px
+    background-color: rgba(240, 200, 200, 0.4)
+
+/** ------------- RECIPE SIDEBAR ------------- **/
+.recipeList
+    width: 275px
+    border-right: solid 1px colorGreyDark
+    overflow: scroll
+    background-image: -webkit-gradient(linear, 0 0, 10 0, from(#DBDBDB), to(#fff))
+    transform: translate(0, 0)
+    -webkit-overflow-scrolling: touch
+    display: none
+
+.recipeList > ol > li > div
+    overflow: ellipsis
+
+#settingsIncomplete:not(:checked) ~ .incomplete
+#settingsIncomplete:not(:checked) ~ * > .incomplete
+#settingsIba:checked ~ .notIba
+#settingsIba:checked ~ * > .notIba
+    display: none
+
+/** ------------- RECIPES ------------- **/
+.recipes
+    box-flex: 1
+    background-color: red
+    min-height: 100%
+    background-image: -webkit-gradient(linear, 0 0, 10 0, from(#DBDBDB), to(#fff))
+    position: relative
+    overflow: scroll
+    -webkit-overflow-scrolling: touch
+
+
+/** Deprecated **/
+.recipes > ol > li
+    display: inline-block
+    width: 320px
+    padding: 0
+    margin: 15px
+
+    vertical-align: top
+    list-style-type: none;
+    background-color: white
+    box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2), 0 0 40px rgba(0, 0, 0, 0.06) inset;
+
+.recipes table
+    width: 100%
+
+.recipes h2
+    margin: 0px 20px
+    padding: 10px 10px 0px 10px
+
+    clear: both
+    text-transform: lowercase
+    font-weight: normal
+    color: colorGreyDark
+
+.recipes h2:after
+    content:" "
+    display: block;
+    width: auto;
+    height: 10px;
+    margin-top: 2px;
+
+    border-top: 1px solid colorGreyDark;
+    clear: both;
+    background-image: -webkit-gradient(linear,0 0,0 5, from(#EEEEEE), to(#fff));
+
+.recipes h2 .ingNum
+    color: black;
+
+.ftShadow .recipeShadowBox
+    width: auto
+    height: 0px
+    overflow: visible
+
+/** TODO: WTF **/
+.ftShadow .recipeShadowMask
+    -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, 
+        color-stop(-0.2, rgba(0,0,0,1)),
+        color-stop(0, rgba(0,0,0,1)),
+        color-stop(1, rgba(0,0,0,1)));
+    height: 30px
+    width: 350px
+    transform: translate(-15px, -15px)
+    background-color: yellow
+    display: none
+
+.ftShadow .recipeShadow
+    width: 60%
+    max-width: 300px
+    max-height: 100px
+    height: 50px
+    box-shadow: 0 8px 16px rgba(black, 0.3)
+    background-color: rgba(black, 0.3)
+    transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+
+.ftShadow .recipeShadow:not(:first-child)
+    transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+
+/** Wikipedia styles **/
+.ambox,
+.toc,
+.recipes > ol > li > *:not(table):not(.recipeShadowBox),
+.recipes table tr:last-child > td[colspan="2"]
+    display: none;
+
+.recipes .floatright,
+.recipes .floatleft
+    display: inline-block;
+
+.recipes .floatleft img,
+.recipes .floatright img
+    max-height: 30px;
+    max-width: 30px;
+    width: auto;
+    height: auto;
+
+.recipes a
+    text-decoration: none;
+
+.recipes th[colspan="2"] > a[title~="IBA"]
+    display: inline-block;
+    width: auto;
+    padding: 5px;
+    border: 1px solid rgb(225,225,255);
+    margin: 5px;
+
+    border-radius: 5px;
+    background-color: rgb(245,245,255);
+
+.recipes th
+.recipes table
+    width: 100%
+
+.recipes table img
+    max-height: 200px
+    max-width: 200px
+    width: auto
+    height: auto
+
+.recipes table,
+.recipes table > caption
+    background-color: white
+    border: 1px solid colorGreyDark
+    border-collapse: collapse
+
+.recipes table tr:first-child
+    background-image: -webkit-gradient(linear, 0 0, 0 5, from(#EEEEEE), to(white));
+
+.recipes th:first-child[colspan="2"]
+    border-bottom: 1px solid colorGreyLight
+
+.recipes table tr:first-child > td[colspan="2"],
+.recipes table tr:nth-child(2) > td[colspan="2"]
+    text-align: center
+
+.recipes table tr > th:not([colspan="2"])
+    width: 70px
+    padding: 5px 3px 5px 7px
+    border-right: 1px solid colorGreyDark
+    
+    text-align: right
+    color: colorGreyDark
+    text-transform: lowercase;
+
+.recipes table tr > th:not([colspan="2"]),
+.recipes table tr > td
+    border-bottom: 1px solid colorGreyLight
+
+.recipes table tr > td
+    padding: 10px
+
+.recipes table li 
+    margin-left: 20px;
+
+.recipes table > caption
+    padding: 5px
+    font-weight: bold
+    font-size: 16px
+    background-color: colorHighlightLight
+    border-bottom-style: none
+
+.recipes table
+    font-size: 12px
+    border-top-style: none
+
+/** ------------- SETTINGS ------------- **/
+.settings, .settings > *
+    width: 300px
+
+.settings label
+    cursor: pointer
+
+.settings label > input + span
+    padding-left: 5px
+    transition: color 1s ease-in-out
+
+.settings input:checked + span
+    color: #303070
+
+.settings
+    fixed: top 0% left 50%
+    height:100%;
+    margin-left: -150px
+
+    z-index: 2000
+    transition: transform 0.5s cubic-bezier(0.6, 0.0, 0.5, 0.5)
+    transform: translate(0,-100%)
+
+.settings > *
+    absolute: top 50% left 0px
+    height: 250px
+    padding: 20px
+    border: 2px solid colorGreyDark
+    margin-top: -125px
+
+    background-color: white
+    border-radius: 20px
+
+.settings h1
+    font-size: 36px
+    color: colorGreyMid
+
+.settings h2
+    padding: 5px 0px 2px 0px
+    border-bottom: 1px solid #909090
+    font-size: 24px
+    font-weight: normal
+
+.settings ul
+    padding: 10px 0px 0px 15px
+    list-style-type: none
+
+.settings li
+    padding: 5px
+
+.settings button
+    padding-left: 20px
+    padding-right: 20px
+    margin-left: 110px
+
+#settingsVisible:checked ~ .settings
+    transform: translate(0,0)
+    transition: transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1.0);

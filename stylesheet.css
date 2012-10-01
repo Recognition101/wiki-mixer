@@ -1,0 +1,757 @@
+/** TODO: add http://lea.verou.me/2012/04/background-attachment-local/ **/
+/** ---- ADDITIONAL CSS3 FUNCTIONS ---- **/
+/** ---- GENERIC OBJECTS ---- **/
+body {
+  font-size: 14px;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+button {
+  display: block;
+  margin: 10px;
+  border: 2px solid #909090;
+  background-color: #f5f5f5;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  font-size: 16px;
+  padding: 5px 15px;
+  text-shadow: 0px 1px 1px rgba(255,255,255,0.7);
+  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, #dbdbdb), color-stop(1, #f5f5f5));
+  background-image: -webkit-linear-gradient(bottom, #dbdbdb 0%, #f5f5f5 100%);
+  background-image: -moz-linear-gradient(bottom, #dbdbdb 0%, #f5f5f5 100%);
+  background-image: -o-linear-gradient(bottom, #dbdbdb 0%, #f5f5f5 100%);
+  background-image: -ms-linear-gradient(bottom, #dbdbdb 0%, #f5f5f5 100%);
+  background-image: linear-gradient(bottom, #dbdbdb 0%, #f5f5f5 100%);
+  cursor: pointer;
+}
+button:active {
+  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, #d2d2ff), color-stop(1, #f0f0f5));
+  background-image: -webkit-linear-gradient(bottom, #d2d2ff 0%, #f0f0f5 100%);
+  background-image: -moz-linear-gradient(bottom, #d2d2ff 0%, #f0f0f5 100%);
+  background-image: -o-linear-gradient(bottom, #d2d2ff 0%, #f0f0f5 100%);
+  background-image: -ms-linear-gradient(bottom, #d2d2ff 0%, #f0f0f5 100%);
+  background-image: linear-gradient(bottom, #d2d2ff 0%, #f0f0f5 100%);
+}
+label {
+  cursor: pointer;
+}
+#settingsPictures:not(:checked) ~ img,
+#settingsPictures:not(:checked) ~ * img {
+  display: none;
+}
+/** ---- TOGGLE SLIDER ---- **/
+.toggleSlide,
+.toggleSlide > div,
+.toggleSlide .shadowGloss:before,
+.toggleSlide .shadowGloss:after,
+.toggleSlide .textBgrnd:before,
+.toggleSlide .textBgrnd:after {
+  width: 77px;
+  height: 26px;
+  cursor: pointer;
+  display: block;
+  overflow: hidden;
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+}
+.toggleSlide.animated > div > div {
+  -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  -moz-transition: -moz-transform 0.5s ease-in-out;
+  -o-transition: -o-transform 0.5s ease-in-out;
+  -ms-transition: -ms-transform 0.5s ease-in-out;
+  transition: transform 0.5s ease-in-out;
+}
+.toggleSlide {
+  border: 1px solid #bdbdbd;
+  border-color: #878787 #999 #bdbdbd;
+  background-image: -webkit-gradient(linear, right top, left top, color-stop(0, #eee), color-stop(0.5, #eee), color-stop(0.5, #1582e7), color-stop(1, #1582e7));
+  background-image: -webkit-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -moz-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -o-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -ms-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+}
+/** Mask **/
+.toggleSlide > div {
+  -webkit-mask-image: -webkit-gradient(radial, 16.883116883116884% center, 0, 16.883116883116884% center, 13, from(#000), color-stop(99%, #000), to(rgba(0,0,0,0))), -webkit-gradient(linear, left top, right top, from(transparent), color-stop(16.883116883116884%, transparent), color-stop(16.883116883116884%, #000), color-stop(83.11688311688312%, #000), color-stop(83.11688311688312%, transparent), to(transparent)), -webkit-gradient(radial, 83.11688311688312% center, 0, 83.11688311688312% center, 13, from(#000), color-stop(99%, #000), to(rgba(0,0,0,0)));
+}
+.toggleSlide:not(.checked) .textBgrnd {
+  -webkit-transform: translate(-51px, 0);
+  -moz-transform: translate(-51px, 0);
+  -o-transform: translate(-51px, 0);
+  -ms-transform: translate(-51px, 0);
+  transform: translate(-51px, 0);
+}
+.toggleSlide:not(.checked) .knob {
+  -webkit-transform: translate(0, -67px);
+  -moz-transform: translate(0, -67px);
+  -o-transform: translate(0, -67px);
+  -ms-transform: translate(0, -67px);
+  transform: translate(0, -67px);
+}
+.toggleSlide .textBgrnd {
+  width: 128px;
+  height: 26px;
+  background-image: -webkit-gradient(linear, right top, left top, color-stop(0, #eee), color-stop(0.5, #eee), color-stop(0.5, #1582e7), color-stop(1, #1582e7));
+  background-image: -webkit-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -moz-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -o-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: -ms-linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  background-image: linear-gradient(right, #eee 0%, #eee 50%, #1582e7 50%, #1582e7 100%);
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+.toggleSlide .textBgrnd:before,
+.toggleSlide .textBgrnd:after {
+  height: 0;
+  line-height: 0;
+  overflow: visible;
+  font-weight: bold;
+  font-size: 18px;
+}
+.toggleSlide .textBgrnd:before {
+  content: "ON";
+  color: #fff;
+  text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
+  -webkit-transform: translate(15px, 13px);
+  -moz-transform: translate(15px, 13px);
+  -o-transform: translate(15px, 13px);
+  -ms-transform: translate(15px, 13px);
+  transform: translate(15px, 13px);
+}
+.toggleSlide .textBgrnd:after {
+  content: "OFF";
+  color: #7f7f7f;
+  text-shadow: 0px 1px 1px rgba(255,255,255,0.4);
+  -webkit-transform: translate(82px, 13px);
+  -moz-transform: translate(82px, 13px);
+  -o-transform: translate(82px, 13px);
+  -ms-transform: translate(82px, 13px);
+  transform: translate(82px, 13px);
+}
+/** shadow **/
+.toggleSlide .shadowGloss:before {
+  content: " ";
+  -webkit-transform: translate(0, -26px);
+  -moz-transform: translate(0, -26px);
+  -o-transform: translate(0, -26px);
+  -ms-transform: translate(0, -26px);
+  transform: translate(0, -26px);
+  -webkit-box-shadow: inset 0px 5px 7px -4px rgba(0,0,0,0.4);
+  box-shadow: inset 0px 5px 7px -4px rgba(0,0,0,0.4);
+}
+/** gloss **/
+.toggleSlide .shadowGloss:after {
+  content: " ";
+  -webkit-transform: translate(4px, -41px);
+  -moz-transform: translate(4px, -41px);
+  -o-transform: translate(4px, -41px);
+  -ms-transform: translate(4px, -41px);
+  transform: translate(4px, -41px);
+  width: 69px;
+  height: 15px;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(255,255,255,0.1)), color-stop(1, rgba(255,255,255,0.4)));
+  background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%);
+  background-image: -moz-linear-gradient(top, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%);
+  background-image: -o-linear-gradient(top, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%);
+  background-image: -ms-linear-gradient(top, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%);
+  background-image: linear-gradient(top, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 100%);
+}
+.toggleSlide .knob {
+  width: 26px;
+  height: 26px;
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+  background-color: #fff;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #d1d1d1), color-stop(1, #fefefe));
+  background-image: -webkit-linear-gradient(top, #d1d1d1 0%, #fefefe 100%);
+  background-image: -moz-linear-gradient(top, #d1d1d1 0%, #fefefe 100%);
+  background-image: -o-linear-gradient(top, #d1d1d1 0%, #fefefe 100%);
+  background-image: -ms-linear-gradient(top, #d1d1d1 0%, #fefefe 100%);
+  background-image: linear-gradient(top, #d1d1d1 0%, #fefefe 100%);
+  -webkit-box-shadow: inset 0 2px 2px 0 rgba(255,255,255,0.4), 0 0 3px rgba(0,0,0,0.8);
+  box-shadow: inset 0 2px 2px 0 rgba(255,255,255,0.4), 0 0 3px rgba(0,0,0,0.8);
+  -webkit-transform: translate(51px, -67px);
+  -moz-transform: translate(51px, -67px);
+  -o-transform: translate(51px, -67px);
+  -ms-transform: translate(51px, -67px);
+  transform: translate(51px, -67px);
+}
+/** ---- MAIN LAYOUT ---- **/
+html,
+body {
+  height: 100%;
+}
+body {
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  -ms-box-orient: vertical;
+  box-orient: vertical;
+}
+.pageState {
+  display: none;
+}
+header {
+  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, #6c9fa0), color-stop(0.5, #7fadaf), color-stop(0.5, #87b2b3), color-stop(1, #b4cccb));
+  background-image: -webkit-linear-gradient(bottom, #6c9fa0 0%, #7fadaf 50%, #87b2b3 50%, #b4cccb 100%);
+  background-image: -moz-linear-gradient(bottom, #6c9fa0 0%, #7fadaf 50%, #87b2b3 50%, #b4cccb 100%);
+  background-image: -o-linear-gradient(bottom, #6c9fa0 0%, #7fadaf 50%, #87b2b3 50%, #b4cccb 100%);
+  background-image: -ms-linear-gradient(bottom, #6c9fa0 0%, #7fadaf 50%, #87b2b3 50%, #b4cccb 100%);
+  background-image: linear-gradient(bottom, #6c9fa0 0%, #7fadaf 50%, #87b2b3 50%, #b4cccb 100%);
+  border-bottom: 1px solid #2c3332;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0px -1px 1px rgba(0,0,0,0.6);
+  padding: 5px 15px;
+}
+.showSettings {
+  position: absolute;
+  top: 0px;
+  right: 10px;
+  padding: 2px;
+  margin: 1px;
+  width: 32px;
+  height: 31px;
+  border: 2px solid #909090;
+  -webkit-border-radius: 7px;
+  border-radius: 7px;
+}
+.showSettings > * {
+  position: relative;
+  top: -15px;
+  left: 0px;
+  font-size: 40px;
+  color: rgba(144,144,144,0.5);
+}
+.overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  background-image: -webkit-gradient(radial, center center, 0, center center, 800, from(rgba(0,0,0,0.3)), to(rgba(0,0,0,0.6)));
+  pointer-events: none;
+  opacity: 0;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+  filter: alpha(opacity=0);
+  -webkit-transition: opacity 500ms linear;
+  -moz-transition: opacity 500ms linear;
+  -o-transition: opacity 500ms linear;
+  -ms-transition: opacity 500ms linear;
+  transition: opacity 500ms linear;
+}
+#settingsVisible:checked ~ .overlay {
+  pointer-events: auto;
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
+.hpanels {
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -ms-box-flex: 1;
+  box-flex: 1;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+  -ms-box-orient: horizontal;
+  box-orient: horizontal;
+}
+/** ---- INGREDIENTS SIDEBAR ---- **/
+.ingredients {
+  width: 275px;
+  border-right: solid 1px #909090;
+  overflow: scroll;
+  background-image: -webkit-gradient(linear, left top, 0 10, from(#dbdbdb), to(rgba(219,219,219,0)));
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+  -webkit-overflow-scrolling: touch;
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  background-repeat: no-repeat;
+  background-color: #fff;
+  -webkit-background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  -moz-background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  background-attachment: local, local, scroll, scroll;
+}
+.ingredients > button {
+  padding: 5px 60px;
+  margin-left: 60px;
+}
+ul.ingredientList > li:not(:last-child) {
+  border-bottom: 1px solid #f5f5f5;
+}
+ul.ingredientList > li:first-child {
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dbdbdb), color-stop(0.2, #fff), color-stop(1, #fff));
+  background-image: -webkit-linear-gradient(top, #dbdbdb 0%, #fff 20%, #fff 100%);
+  background-image: -moz-linear-gradient(top, #dbdbdb 0%, #fff 20%, #fff 100%);
+  background-image: -o-linear-gradient(top, #dbdbdb 0%, #fff 20%, #fff 100%);
+  background-image: -ms-linear-gradient(top, #dbdbdb 0%, #fff 20%, #fff 100%);
+  background-image: linear-gradient(top, #dbdbdb 0%, #fff 20%, #fff 100%);
+}
+ul.ingredientList > li:first-child > label {
+  padding-top: 12px;
+}
+ul.ingredientList > li {
+  background-color: #fff;
+}
+ul.ingredientList > li:nth-child(2n) {
+  background-color: #f5f5f5;
+}
+ul.ingredientList > li {
+  text-transform: capitalize;
+  list-style-type: none;
+  overflow: hidden;
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+  -ms-box-orient: horizontal;
+  box-orient: horizontal;
+}
+ul.ingredientList > li .chkSymbol {
+  font-size: 16px;
+  width: 15px;
+  height: 18px;
+  border: 2px solid #f5f5f5;
+  padding: 0px 0px 0px 3px;
+  -webkit-border-radius: 32px;
+  border-radius: 32px;
+  -webkit-box-shadow: 0px 1px 5px #888;
+  box-shadow: 0px 1px 5px #888;
+  color: #fff;
+  text-shadow: 0px -1px 1px rgba(0,0,0,0.6);
+  opacity: 0;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+  filter: alpha(opacity=0);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #0fb20f), color-stop(1, #9bf99b));
+  background-image: -webkit-linear-gradient(top, #0fb20f 0%, #9bf99b 100%);
+  background-image: -moz-linear-gradient(top, #0fb20f 0%, #9bf99b 100%);
+  background-image: -o-linear-gradient(top, #0fb20f 0%, #9bf99b 100%);
+  background-image: -ms-linear-gradient(top, #0fb20f 0%, #9bf99b 100%);
+  background-image: linear-gradient(top, #0fb20f 0%, #9bf99b 100%);
+  -webkit-transform: translate(20px, 0px);
+  -moz-transform: translate(20px, 0px);
+  -o-transform: translate(20px, 0px);
+  -ms-transform: translate(20px, 0px);
+  transform: translate(20px, 0px);
+  -webkit-transition-property: opacity, -webkit-transform;
+  -moz-transition-property: opacity, -webkit-transform;
+  -o-transition-property: opacity, -webkit-transform;
+  -ms-transition-property: opacity, -webkit-transform;
+  transition-property: opacity, -webkit-transform;
+  -webkit-transition-duration: 500ms, 500ms;
+  -moz-transition-duration: 500ms, 500ms;
+  -o-transition-duration: 500ms, 500ms;
+  -ms-transition-duration: 500ms, 500ms;
+  transition-duration: 500ms, 500ms;
+  -webkit-transition-timing-function: ease-in-out, ease-out;
+  -moz-transition-timing-function: ease-in-out, ease-out;
+  -o-transition-timing-function: ease-in-out, ease-out;
+  -ms-transition-timing-function: ease-in-out, ease-out;
+  transition-timing-function: ease-in-out, ease-out;
+}
+ul.ingredientList > li > .ingBgrnd {
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  pointer-events: none;
+  -webkit-transition: background-color 500ms ease-in-out;
+  -moz-transition: background-color 500ms ease-in-out;
+  -o-transition: background-color 500ms ease-in-out;
+  -ms-transition: background-color 500ms ease-in-out;
+  transition: background-color 500ms ease-in-out;
+}
+/** Three-State Toggle **/
+ul.ingredientList > li > * {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+ul.ingredientList > li > input,
+ul.ingredientList > li > label {
+  display: none;
+  cursor: pointer;
+}
+ul.ingredientList > li > label {
+  padding: 7px 7px 7px 14px;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -ms-box-flex: 1;
+  box-flex: 1;
+}
+ul.ingredientList > li > input.ingNone:checked ~ label.ingHave,
+ul.ingredientList > li > input.ingHave:checked ~ label.ingNeed,
+ul.ingredientList > li > input.ingNeed:checked ~ label.ingNone {
+  display: block;
+}
+ul.ingredientList > li > input.ingNone:not(:checked) ~ label {
+  color: #303070;
+}
+ul.ingredientList > li > input.ingNone:not(:checked) ~ .ingBgrnd {
+  background-color: rgba(210,210,255,0.2);
+}
+.ingCheckState {
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+  -ms-box-orient: horizontal;
+  box-orient: horizontal;
+  height: 100%;
+  width: 0px;
+  -webkit-transform: translate(0px, 0px);
+  -moz-transform: translate(0px, 0px);
+  -o-transform: translate(0px, 0px);
+  -ms-transform: translate(0px, 0px);
+  transform: translate(0px, 0px);
+  cursor: default;
+  pointer-events: none;
+}
+.ftAnimateIng .ingCheckState {
+  -webkit-transition: -webkit-transform 250ms ease-in-out;
+  -moz-transition: -moz-transform 250ms ease-in-out;
+  -o-transition: -o-transform 250ms ease-in-out;
+  -ms-transition: -ms-transform 250ms ease-in-out;
+  transition: transform 250ms ease-in-out;
+}
+ul.ingredientList > li > input.ingHave:checked ~ .ingCheckState {
+  -webkit-transform: translate(-34px, 0px);
+  -moz-transform: translate(-34px, 0px);
+  -o-transform: translate(-34px, 0px);
+  -ms-transform: translate(-34px, 0px);
+  transform: translate(-34px, 0px);
+}
+ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState {
+  -webkit-transform: translate(-68px, 0px);
+  -moz-transform: translate(-68px, 0px);
+  -o-transform: translate(-68px, 0px);
+  -ms-transform: translate(-68px, 0px);
+  transform: translate(-68px, 0px);
+}
+.ingCheckState > * {
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -ms-box-flex: 1;
+  box-flex: 1;
+  padding: 7px 17px;
+  height: 100%;
+  color: #999;
+  text-shadow: 0px 1px 1px rgba(255,255,255,0.7);
+}
+.ingCheckState > *:first-child {
+  color: #6060aa;
+  margin-right: 5px;
+}
+.ingCheckState > *:nth-child(2) {
+  margin-top: 3px;
+  padding: 3px 30px 3px 12px;
+  border: 1px solid #aa9090;
+  -webkit-border-radius: 7px;
+  border-radius: 7px;
+  background-color: rgba(240,200,200,0.4);
+}
+/** ------------- RECIPE SIDEBAR ------------- **/
+.recipeList {
+  width: 275px;
+  border-right: solid 1px #909090;
+  overflow: scroll;
+  background-image: -webkit-gradient(linear, 0 0, 10 0, from(#dbdbdb), to(#fff));
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+  -webkit-overflow-scrolling: touch;
+  display: none;
+}
+.recipeList > ol > li > div {
+  white-space: nowrap;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+}
+#settingsIncomplete:not(:checked) ~ .incomplete,
+#settingsIncomplete:not(:checked) ~ * > .incomplete,
+#settingsIba:checked ~ .notIba,
+#settingsIba:checked ~ * > .notIba {
+  display: none;
+}
+/** ------------- RECIPES ------------- **/
+.recipes {
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -ms-box-flex: 1;
+  box-flex: 1;
+  background-color: #f00;
+  min-height: 100%;
+  background-image: -webkit-gradient(linear, 0 0, 10 0, from(#dbdbdb), to(#fff));
+  position: relative;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+/** Deprecated **/
+.recipes > ol > li {
+  display: inline-block;
+  width: 320px;
+  padding: 0;
+  margin: 15px;
+  vertical-align: top;
+  list-style-type: none;
+  background-color: #fff;
+  -webkit-box-shadow: 0 1px 12px rgba(0,0,0,0.2), 0 0 40px rgba(0,0,0,0.06) inset;
+  box-shadow: 0 1px 12px rgba(0,0,0,0.2), 0 0 40px rgba(0,0,0,0.06) inset;
+}
+.recipes table {
+  width: 100%;
+}
+.recipes h2 {
+  margin: 0px 20px;
+  padding: 10px 10px 0px 10px;
+  clear: both;
+  text-transform: lowercase;
+  font-weight: normal;
+  color: #909090;
+}
+.recipes h2:after {
+  content: " ";
+  display: block;
+  width: auto;
+  height: 10px;
+  margin-top: 2px;
+  border-top: 1px solid #909090;
+  clear: both;
+  background-image: -webkit-gradient(linear, 0 0, 0 5, from(#eee), to(#fff));
+}
+.recipes h2 .ingNum {
+  color: #000;
+}
+.ftShadow .recipeShadowBox {
+  width: auto;
+  height: 0px;
+  overflow: visible;
+}
+/** TODO: WTF **/
+.ftShadow .recipeShadowMask {
+  -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, color-stop(-0.2, #000), color-stop(0, #000), color-stop(1, #000));
+  height: 30px;
+  width: 350px;
+  -webkit-transform: translate(-15px, -15px);
+  -moz-transform: translate(-15px, -15px);
+  -o-transform: translate(-15px, -15px);
+  -ms-transform: translate(-15px, -15px);
+  transform: translate(-15px, -15px);
+  background-color: #ff0;
+  display: none;
+}
+.ftShadow .recipeShadow {
+  width: 60%;
+  max-width: 300px;
+  max-height: 100px;
+  height: 50px;
+  -webkit-box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  background-color: rgba(0,0,0,0.3);
+  -webkit-transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+  -moz-transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+  -o-transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+  -ms-transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+  transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
+}
+.ftShadow .recipeShadow:not(:first-child) {
+  -webkit-transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+  -moz-transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+  -o-transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+  -ms-transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+  transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
+}
+/** Wikipedia styles **/
+.ambox,
+.toc,
+.recipes > ol > li > *:not(table):not(.recipeShadowBox),
+.recipes table tr:last-child > td[colspan="2"] {
+  display: none;
+}
+.recipes .floatright,
+.recipes .floatleft {
+  display: inline-block;
+}
+.recipes .floatleft img,
+.recipes .floatright img {
+  max-height: 30px;
+  max-width: 30px;
+  width: auto;
+  height: auto;
+}
+.recipes a {
+  text-decoration: none;
+}
+.recipes th[colspan="2"] > a[title~="IBA"] {
+  display: inline-block;
+  width: auto;
+  padding: 5px;
+  border: 1px solid #e1e1ff;
+  margin: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background-color: #f5f5ff;
+}
+.recipes th,
+.recipes table {
+  width: 100%;
+}
+.recipes table img {
+  max-height: 200px;
+  max-width: 200px;
+  width: auto;
+  height: auto;
+}
+.recipes table,
+.recipes table > caption {
+  background-color: #fff;
+  border: 1px solid #909090;
+  border-collapse: collapse;
+}
+.recipes table tr:first-child {
+  background-image: -webkit-gradient(linear, 0 0, 0 5, from(#eee), to(#fff));
+}
+.recipes th:first-child[colspan="2"] {
+  border-bottom: 1px solid #f5f5f5;
+}
+.recipes table tr:first-child > td[colspan="2"],
+.recipes table tr:nth-child(2) > td[colspan="2"] {
+  text-align: center;
+}
+.recipes table tr > th:not([colspan="2"]) {
+  width: 70px;
+  padding: 5px 3px 5px 7px;
+  border-right: 1px solid #909090;
+  text-align: right;
+  color: #909090;
+  text-transform: lowercase;
+}
+.recipes table tr > th:not([colspan="2"]),
+.recipes table tr > td {
+  border-bottom: 1px solid #f5f5f5;
+}
+.recipes table tr > td {
+  padding: 10px;
+}
+.recipes table li {
+  margin-left: 20px;
+}
+.recipes table > caption {
+  padding: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  background-color: #f0f0f5;
+  border-bottom-style: none;
+}
+.recipes table {
+  font-size: 12px;
+  border-top-style: none;
+}
+/** ------------- SETTINGS ------------- **/
+.settings,
+.settings > * {
+  width: 300px;
+}
+.settings label {
+  cursor: pointer;
+}
+.settings label > input + span {
+  padding-left: 5px;
+  -webkit-transition: color 1s ease-in-out;
+  -moz-transition: color 1s ease-in-out;
+  -o-transition: color 1s ease-in-out;
+  -ms-transition: color 1s ease-in-out;
+  transition: color 1s ease-in-out;
+}
+.settings input:checked + span {
+  color: #303070;
+}
+.settings {
+  position: fixed;
+  top: 0%;
+  left: 50%;
+  height: 100%;
+  margin-left: -150px;
+  z-index: 2000;
+  -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.6, 0, 0.5, 0.5);
+  -moz-transition: -moz-transform 0.5s cubic-bezier(0.6, 0, 0.5, 0.5);
+  -o-transition: -o-transform 0.5s cubic-bezier(0.6, 0, 0.5, 0.5);
+  -ms-transition: -ms-transform 0.5s cubic-bezier(0.6, 0, 0.5, 0.5);
+  transition: transform 0.5s cubic-bezier(0.6, 0, 0.5, 0.5);
+  -webkit-transform: translate(0, -100%);
+  -moz-transform: translate(0, -100%);
+  -o-transform: translate(0, -100%);
+  -ms-transform: translate(0, -100%);
+  transform: translate(0, -100%);
+}
+.settings > * {
+  position: absolute;
+  top: 50%;
+  left: 0px;
+  height: 250px;
+  padding: 20px;
+  border: 2px solid #909090;
+  margin-top: -125px;
+  background-color: #fff;
+  -webkit-border-radius: 20px;
+  border-radius: 20px;
+}
+.settings h1 {
+  font-size: 36px;
+  color: #dbdbdb;
+}
+.settings h2 {
+  padding: 5px 0px 2px 0px;
+  border-bottom: 1px solid #909090;
+  font-size: 24px;
+  font-weight: normal;
+}
+.settings ul {
+  padding: 10px 0px 0px 15px;
+  list-style-type: none;
+}
+.settings li {
+  padding: 5px;
+}
+.settings button {
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-left: 110px;
+}
+#settingsVisible:checked ~ .settings {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  transform: translate(0, 0);
+  -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1);
+  -moz-transition: -moz-transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1);
+  -o-transition: -o-transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1);
+  -ms-transition: -ms-transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1);
+  transition: transform 0.5s cubic-bezier(0.5, 0.5, 0.4, 1);
+}
