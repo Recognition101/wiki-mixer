@@ -48,6 +48,9 @@ button:active
 label
     cursor: pointer
 
+a
+    text-decoration: none
+
 #settingsPictures:not(:checked) ~ img,
 #settingsPictures:not(:checked) ~ * img
     display: none
@@ -386,7 +389,7 @@ ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState
 .recipes table
     width: 100%
 
-.recipes h2
+.catTitle
     margin: 0px 20px
     padding: 10px 10px 0px 10px
 
@@ -395,7 +398,7 @@ ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState
     font-weight: normal
     color: colorGreyDark
 
-.recipes h2:after
+.catTitle:after
     content:" "
     display: block;
     width: auto;
@@ -406,124 +409,83 @@ ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState
     clear: both;
     background-image: -webkit-gradient(linear,0 0,0 5, from(#EEEEEE), to(#fff));
 
-.recipes h2 .ingNum
+.catTitleNum
     color: black;
 
-.ftShadow .recipeShadowBox
-    width: auto
-    height: 0px
-    overflow: visible
-
-/** TODO: WTF **/
-.ftShadow .recipeShadowMask
-    -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, 
-        color-stop(-0.2, rgba(0,0,0,1)),
-        color-stop(0, rgba(0,0,0,1)),
-        color-stop(1, rgba(0,0,0,1)));
-    height: 30px
-    width: 350px
-    transform: translate(-15px, -15px)
-    background-color: yellow
+.catTitle .hidden
     display: none
 
-.ftShadow .recipeShadow
-    width: 60%
-    max-width: 300px
-    max-height: 100px
-    height: 50px
-    box-shadow: 0 8px 16px rgba(black, 0.3)
-    background-color: rgba(black, 0.3)
-    transform: translate(6px, -62px) skew(-15deg) rotate(-6deg);
-
-.ftShadow .recipeShadow:not(:first-child)
-    transform: scaleX(-1) translate(-90px, -112px) skew(-15deg) rotate(-6deg);
-
-/** Wikipedia styles **/
-.ambox,
-.toc,
-.recipes > ol > li > *:not(table):not(.recipeShadowBox),
-.recipes table tr:last-child > td[colspan="2"]
+.recipes.sortType0 .catTitle > .percent,
+.recipes.sortType1 .catTitle > .number
     display: none;
 
-.recipes .floatright,
-.recipes .floatleft
-    display: inline-block;
+/** Recipes */
+.hideRow
+    display: none
+.recipe > table
+    border-collapse: collapse
+.recipe > table:not(.iba) .ibaLink
+    display: none
 
-.recipes .floatleft img,
-.recipes .floatright img
-    max-height: 30px;
-    max-width: 30px;
-    width: auto;
-    height: auto;
+.ibaLink
+    text-align: center
+    background-image: linear-gradient(right, 
+        rgba(colorHighlightLight,0),
+        40% colorHighlightLight,
+        60% colorHighlightLight,
+        rgba(colorHighlightLight,0))
 
-.recipes a
-    text-decoration: none;
+.recipe > table > caption
+    font-size: fsLarge
+    font-weight: bold
+    padding: 10px
 
-.recipes th[colspan="2"] > a[title~="IBA"]
-    display: inline-block;
-    width: auto;
-    padding: 5px;
-    border: 1px solid rgb(225,225,255);
-    margin: 5px;
+.recipe > table th,
+.recipe > table td
+    font-weight: normal
+    border-top: 1px solid colorGreyLight
+    padding: 5px
+    vertical-align: top
 
-    border-radius: 5px;
-    background-color: rgb(245,245,255);
+.recipe > table th
+    color: colorGreyDark
+    vertical-align: top
+    width: 30px
 
-.recipes th
-.recipes table
-    width: 100%
+.recipe > table td
+    border-left: 1px solid colorGreyLight
 
-.recipes table img
+.recipePictureBox
+    text-align: center
+.recipePicture
     max-height: 200px
     max-width: 200px
     width: auto
     height: auto
 
-.recipes table,
-.recipes table > caption
-    background-color: white
-    border: 1px solid colorGreyDark
-    border-collapse: collapse
-
-.recipes table tr:first-child
-    background-image: -webkit-gradient(linear, 0 0, 0 5, from(#EEEEEE), to(white));
-
-.recipes th:first-child[colspan="2"]
-    border-bottom: 1px solid colorGreyLight
-
-.recipes table tr:first-child > td[colspan="2"],
-.recipes table tr:nth-child(2) > td[colspan="2"]
-    text-align: center
-
-.recipes table tr > th:not([colspan="2"])
-    width: 70px
-    padding: 5px 3px 5px 7px
-    border-right: 1px solid colorGreyDark
-    
-    text-align: right
+.recipeGarnishItem,
+.recipeIngItem
+    list-style-type: none
+.recipeGarnishItem:before,
+.recipeIngItem:before
+    content:"\25e6"
     color: colorGreyDark
-    text-transform: lowercase;
+    float: left
+    margin-right: 5px
 
-.recipes table tr > th:not([colspan="2"]),
-.recipes table tr > td
-    border-bottom: 1px solid colorGreyLight
-
-.recipes table tr > td
-    padding: 10px
-
-.recipes table li 
-    margin-left: 20px;
-
-.recipes table > caption
-    padding: 5px
-    font-weight: bold
-    font-size: 16px
-    background-color: colorHighlightLight
-    border-bottom-style: none
-
-.recipes table
-    font-size: 12px
-    border-top-style: none
+.recipeGlassOuter
+    display: box
+.recipeGlassList
+    display: box
+    box-flex: 0.1
+.recipeGlassImg
+    list-style-type: none
+    margin-right: 10px
+.recipeGlassImg > img
+    max-height: 30px
+    max-width: 30px
+.recipeGlassTxt
+    box-flex: 0.9
 
 /** ------------- SETTINGS ------------- **/
 .settings, .settings > *

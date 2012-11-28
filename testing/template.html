@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>templating test</title>
+        <script type="text/javascript" src="../scripts.js"></script>
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function(e) {
+                var temp = new mix.lib.TemplateManager();
+                temp.addTemplate("main", document.getElementById("hook"));
+                var dom = temp.generateDom("main", {
+                    name: "five",
+                    data: {inner: 4}
+                    });
+                
+                document.getElementById("insertpoint").appendChild(dom);
+                document.getElementById("insertpoint2").appendChild(temp.generateDom("main", {
+                    name: "five345",
+                    data: {inner: {title: 324}}
+                }));
+                window.setTimeout(function() {temp.populateTemplate("main", dom, {
+                    name: "five",
+                    data: {inner: {title: 6}, outer: "hi"}
+                    });}, 3000);
+
+                temp.addTemplate("loop", document.getElementById("loopExample"));
+                var domLoop = temp.generateDom("loop", {context: [{name: "one", value: 1}, {name: "two", value: 2}]});
+                document.getElementById("insertpoint3").appendChild(domLoop);
+                window.setTimeout(function() {
+                    temp.populateTemplate("loop", domLoop, {context: [{name: "one", value: 1}, {name: "two", value: 2}, {name: "three", value: 3}]});
+                }, 3000);
+                window.setTimeout(function() {
+                    temp.populateTemplate("loop", domLoop, {context: [{name: "one", value: 1}, {name: "three", value: 3}]});
+                }, 6000);
+
+                temp.addTemplate("loop2", document.getElementById("loopExample2"));
+                var domLoop2 = temp.generateDom("loop2", {context: ["hello", "world", "and", "stuff"]});
+                document.getElementById("insertpoint4").appendChild(domLoop2);
+            });
+        </script>
+    </head>
+    <body style="margin: 200px">
+        <div id="hook">
+            <div>Hello, <span data-attr="data-test: name ; class: data.outer ;" data-html="name"></span></div>
+            <h1 data-html="data.inner.title"></h1>
+        </div>
+        <div id="loopExample">
+            <ul data-loop="context in li1">
+                <li data-frag="li1">
+                    <b><span data-html="name"></span>:</b>
+                    <span data-html="value"></span>
+                </li>
+            </ul>
+        </div>
+        <div id="loopExample2">
+            <ul data-loop="context in li2">
+                <li data-frag="li2">
+                    <span data-html="."></span>
+                </li>
+            </ul>
+        </div>
+        <div id="insertpoint">
+        </div>
+        <div id="insertpoint2">
+        </div>
+        <div id="insertpoint3">
+        </div>
+        <div id="insertpoint4">
+        </div>
+    </body>
+</html>
+

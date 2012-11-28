@@ -1,17 +1,43 @@
 var mix = {data: {}, ui: {}, lib: {}};
 
 /**
- * Given a tag name and properties for the element (ex: innerHTML),
- * this will create an element with those properties.
- * @param {string} name the tag name (ie: a, div, etc)
- * @param {Object.<string, string>} props a map of prop names to their values to set
+ * Trims the spaces from the start and end of a string.
+ * @param {string} str the string to trim
+ * @return {string} the trimmed string
  */
-mix.lib.makeDomEl = function makeDomEl(name, props) {
-    var dom = document.createElement(name);
-    for (var prop in props) {
-        dom[prop] = props[prop];
+mix.lib.trim = function(str) {
+    if (!str) {return str;}
+    var re = /(^[\s\n\t]*)|([\s\n\t]*$)/g;
+    return str.replace(re, "");
+};
+
+/**
+ * Given an object and an array, this function looks depth first
+ * into the object for the keypath represented by the array.
+ * @param {Object} obj the object to search within
+ * @param {Array.<string>} keys the list of keys to traverse into
+ * @return {?Object|undefined} undefined if the keypath does not exist in the object,
+ *      otherwise returns the object or value that was found at that keypath.
+ */
+mix.lib.safeRetrieve = function(obj, keys) {
+    for(var i=0; i < keys.length; i += 1) {
+        if (typeof obj === "object" && keys[i] in obj) {
+            obj = obj[keys[i]];
+        } else {
+            return undefined;
+        }
     }
-    return dom;
+    return obj;
+};
+
+/**
+ * Given a dom node, remove it from its parent if it has one.
+ * @param {Node} dom the dom node to remove
+ */
+mix.lib.domRemove = function(dom) {
+    if (dom.parentNode) {
+        dom.parentNode.removeChild(dom);
+    }
 };
 
 /**
@@ -172,18 +198,166 @@ mix.lib.OrderedArray.prototype.remove = function(el) {
 };
 
 /**
+ * This object supports extremely basic DOM templates.
+ * It can pull DOM nodes out and collect them in a map,
+ * and dynamically update their content to match an object.
+ * @constructor
+ * @class
+ */
+mix.lib.TemplateManager = function() {
+    this.templates = {};
+};
+
+/**
+ * Pulls a node out of the dom and uses it as a template with
+ * a given ID. That ID can then be used in generateDom.
+ * @param {string} id a Template ID to use for future referencing this template
+ * @param {Node} dom the dom node to remove from the DOM and make into a template
+ */
+mix.lib.TemplateManager.prototype.addTemplate = function(id, dom) {
+    var fragmentMap = {};
+    var frags = dom.querySelectorAll("*[data-frag]");
+    var fragNm = "";
+    for(var i=0; i < frags.length; i+=1) {
+        fragNm = frags[i].getAttribute("data-frag");
+        if (fragNm !== "") {
+            fragmentMap[fragNm] = frags[i];
+            mix.lib.domRemove(frags[i]);
+        }
+    }
+
+    var loops = dom.querySelectorAll("*[data-loop]");
+    for(i=0; i < loops.length; i+=1) {
+        loops[i].innerHTML = "";
+    }
+
+    dom.removeAttribute("id");
+    this.templates[id] = {
+        dom: dom,
+        frags: fragmentMap
+    };
+
+    mix.lib.domRemove(dom);
+};
+
+/**
+ * Creates a new DOM Nodes based on a template and some data.
+ * @param {string} id a Template ID to create a new DOM node from
+ * @param {Object} data the data to fill the template with
+ * @return {Node} the generated DOM node
+ */
+mix.lib.TemplateManager.prototype.generateDom = function(id, data) {
+    if (!(id in this.templates)) {
+        return null;
+    }
+
+    var domRet = this.templates[id].dom.cloneNode(true);
+    this.populateTemplate(id, domRet, data);
+    return domRet;
+};
+
+/**
+ * Given a DOM Node with template data attributes, this function updates
+ * the DOM node with a new data object. Note that undefined data keys
+ * will retain their old value.
+ * @param {string} id the Template ID
+ * @param {Node} dom the DOM Node to fill with data
+ * @param {Object} data the data to fill the DOM with
+ */
+mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data) {
+    var fill = dom.querySelectorAll("*[data-html]");
+    var keys = null, attrs = null, prevElems=null, context = null;
+    var newHtml = "", i=0, j=0;
+    for(i=0; i < fill.length; i+=1) {
+        keys = fill[i].getAttribute("data-html");
+        newHtml = undefined;
+        if (keys === ".") {
+            newHtml = data;
+        } else {
+            keys = keys ? keys.split(".") : [];
+            newHtml = mix.lib.safeRetrieve(data, keys);
+        }
+        if (newHtml !== undefined && newHtml !== fill[i].innerHTML) {
+            fill[i].innerHTML = newHtml;
+        }
+    }
+
+    var replaceAttrs = function(domAttrs) {
+        attrs = domAttrs.getAttribute("data-attr");
+        attrs = attrs.split(";");
+
+        for(j=0; j < attrs.length; j+=1) {
+            keys = attrs[j].split(":");
+            if (keys[0] && keys[1]) {
+                keys[0] = mix.lib.trim(keys[0]);
+                keys[1] = mix.lib.trim(keys[1]);
+                var dat = "";
+                if (keys[1] === ".") {
+                    dat = data;
+                } else {
+                    keys[1] = keys[1] ? keys[1].split(".") : [];
+                    dat = mix.lib.safeRetrieve(data, keys[1]);
+                }
+                if (dat && domAttrs.getAttribute(keys[0]) !== dat) {
+                    domAttrs.setAttribute(keys[0], dat);
+                }
+            }
+        }
+    };
+    fill = dom.querySelectorAll("*[data-attr]");
+    if (dom.getAttribute("data-attr")) {
+        replaceAttrs(dom);
+    }
+    for(i=0; i < fill.length; i+=1) {
+        replaceAttrs(fill[i]);
+    }
+
+    var newDom = null;
+    fill = dom.querySelectorAll("*[data-loop]");
+    for(i=0; i < fill.length; i+=1) {
+        attrs = fill[i].getAttribute("data-loop").split(" in ");
+        if (attrs[0] && attrs[1]) {
+            attrs[0] = mix.lib.trim(attrs[0]);
+            attrs[1] = mix.lib.trim(attrs[1]);
+            context = mix.lib.safeRetrieve(data, attrs[0].split("."));
+            if (context && context.length) {
+                prevElems = fill[i].querySelectorAll("*[data-frag="+attrs[1]+"]");
+                for(j=0; j < context.length; j+=1) {
+                    if (j < prevElems.length) {
+                        this.populateTemplate(id, prevElems[j], context[j]);
+                    } else {
+                        newDom = this.templates[id].frags[attrs[1]].cloneNode(true);
+                        fill[i].appendChild(newDom);
+                        this.populateTemplate(id, newDom, context[j]);
+                    }
+                }
+                for(j=context.length; j < prevElems.length; j+=1) {
+                    mix.lib.domRemove(prevElems[j]);
+                }
+            }
+        }
+    }
+};
+
+/**
  * The Ingredient list UI, handles getting the state of
  * the ingredients that are selected.
- * @param {Element} the dom element containing this widget
+ * @param {Element} domContainer the dom element containing this widget
+ * @param {mix.lib.TemplateManager} templates the template manager to pull from
+ * @param {string} templateName the name of the template describing an ingredient
  * @class
  * @constructor
  */
-mix.ui.Ingredients = function Ingredients(domContainer) {
+mix.ui.Ingredients = function Ingredients(domContainer, templates, templateName) {
     this.domMain = domContainer;
     this.domList = domContainer.querySelector("ul.ingredientList");
     this.domIngMap = {}; // ingName -> {"none": dom, "have": dom, "need": dom} (dom of radio button)
     this.ingMap = {}; // ingName -> 1 (has it) | 2 (needs it) | undefined (neither)
     this.domClearBtn = domContainer.querySelector("button");
+
+    this.templates = templates;
+    this.templateName = templateName;
+
     if (this.domClearBtn) {
         var self = this;
         this.domClearBtn.addEventListener("click", function(e) {
@@ -205,7 +379,6 @@ mix.ui.Ingredients.prototype = new mix.lib.EventHandler();
 mix.ui.Ingredients.prototype.loadData = function loadData() {
     var ingIndex = 0;
     var ing = null;
-    var makeDomEl = mix.lib.makeDomEl;
     
     while(this.domList.hasChildNodes()) {
         this.domList.removeChild(this.domList.firstChild);
@@ -217,41 +390,25 @@ mix.ui.Ingredients.prototype.loadData = function loadData() {
     }
     ingList.sort();
 
+    var domLi = null;
+    var idNone = "", idHave = "", idNeed = "";
     for(var i=0; i < ingList.length; i+=1) {
         ing = ingList[i];
-        var domLi = document.createElement("li");
-
-        var bgrnd= makeDomEl("div", {className: "ingBgrnd"});
-        
-        var rad1 = makeDomEl("input", {type:"radio", name:"radIngState"+i, id:"radIngNone"+i, className:"ingNone", value:"none", checked: true});
-        var rad2 = makeDomEl("input", {type:"radio", name:"radIngState"+i, id:"radIngHave"+i, className:"ingHave", value:"have"});
-        var rad3 = makeDomEl("input", {type:"radio", name:"radIngState"+i, id:"radIngNeed"+i, className:"ingNeed", value:"need"});
-        this.domIngMap[ing] = {
-            "none": rad1,
-            "have": rad2,
-            "need": rad3
-        };
-
-        var rad1Lbl = makeDomEl("label", {htmlFor: "radIngNone"+i, innerHTML: ing, className:"ingNone"});
-        var rad2Lbl = makeDomEl("label", {htmlFor: "radIngHave"+i, innerHTML: ing, className:"ingHave"});
-        var rad3Lbl = makeDomEl("label", {htmlFor: "radIngNeed"+i, innerHTML: ing, className:"ingNeed"});
-
-        var chkLbl = makeDomEl("div", {innerHTML: "\u2714"});
-        var reqLbl = makeDomEl("div", {innerHTML: "R"});
-        var state = makeDomEl("div", {className: "ingCheckState"});
-        state.appendChild(chkLbl);
-        state.appendChild(reqLbl);
-
-        domLi.appendChild(rad1);
-        domLi.appendChild(rad2);
-        domLi.appendChild(rad3);
-        domLi.appendChild(bgrnd);
-        domLi.appendChild(rad1Lbl);
-        domLi.appendChild(rad2Lbl);
-        domLi.appendChild(rad3Lbl);
-        domLi.appendChild(state);
-
+        idNone = "radIngNone"+i;
+        idHave = "radIngHave"+i;
+        idNeed = "radIngNeed"+i;
+        domLi = this.templates.generateDom(this.templateName, {
+            "idIng": "radIngState"+i,
+            "idNone": idNone,
+            "idHave": idHave,
+            "idNeed": idNeed,
+            "nameIng": ing
+        });
         this.domList.appendChild(domLi);
+        this.domIngMap[ing] = {};
+        this.domIngMap[ing]["none"] = document.getElementById(idNone);
+        this.domIngMap[ing]["have"] = document.getElementById(idHave);
+        this.domIngMap[ing]["need"] = document.getElementById(idNeed);
     }
 
     var self = this;
@@ -352,37 +509,48 @@ mix.ui.Ingredients.prototype.setNeed = function setNeed(ingName) {
  * @class
  * @constructor
  * @param {Element} domContainer the parent dom element that this object controls.
- * @param {function(string): HTMLLiElement} makeRecipeDom a function that, given
- *      a drink name, creates and returns a dom element to be used in this recipe list
+ * @param {mix.lib.TemplateManager} templates the template library used for this 
+ * @param {string} recipeTempId the ID of the template to use for each recipe card
+ * @param {string} categoryHeaderTempId the ID of the template to use for the category headers
+ * @param {string} categoryListTempId the ID of the template to use for category containers
  */
-mix.ui.Recipes = function(domContainer, makeRecipeDom) {
+mix.ui.Recipes = function(domContainer, templates, recipeTempId, categoryHeaderTempId, categoryListTempId) {
     this.domContainer = domContainer;
     this.sortType = null;
+    this.templates = templates;
+    this.tidRecipe = recipeTempId;
+    this.tidCatHeader = categoryHeaderTempId;
+    this.tidCatList = categoryListTempId;
     var numContainers = 10;
-    var makeDomEl = mix.lib.makeDomEl;
 
     //titles (h2)
     this.catTitleDom = [];
     var cn = "";
     for(var i=0; i < numContainers; i+=1) {
-        cn = i === 0 ? "" : "incomplete";
-        this.catTitleDom[i] = makeDomEl("h2", {className: cn});
+        this.catTitleDom[i] = this.templates.generateDom(this.tidCatHeader, {
+            "mainClass": i === 0 ? "catTitle" : "catTitle incomplete",
+            "missing": i,
+            "isNotOne": i !== 1 ? "" : "hidden",
+            "isLast": i === numContainers-1 ? "" : "hidden",
+            "percentHave": (i === numContainers - 1 ? "20" : (100-i*10))+"%"
+        });
     }
 
     //content boxes (ol)
     this.catContentDom = []; //type -> dom root
-    this.catContent = []; //type -> OrderedArray of drink names
+    this.catContent = [];    //type -> OrderedArray of drink names
     for(i=0; i < numContainers; i+=1) {
-        cn = i === 0 ? "" : "incomplete";
-        this.catContentDom[i] = makeDomEl("ol", {className: cn});
         this.catContent[i] = new mix.lib.OrderedArray();
+        this.catContentDom[i] = this.templates.generateDom(this.tidCatList, {
+            "mainClass": i === 0 ? "" : "incomplete"
+        });
     }
 
     //recipes (li)
     this.drinkDomMap = {}; //drink name -> dom
     this.drinkCurCat = {}; //drink name -> cat number
     for(var drinkName in mix.data.drinks) {
-        this.drinkDomMap[drinkName] = makeRecipeDom(drinkName);
+        this.drinkDomMap[drinkName] = this.templates.generateDom(this.tidRecipe, mix.data.drinks[drinkName]);
     }
 
     //set content of h2 and ol
@@ -391,7 +559,6 @@ mix.ui.Recipes = function(domContainer, makeRecipeDom) {
         domContainer.appendChild(this.catTitleDom[i]);
         domContainer.appendChild(this.catContentDom[i]);
     }
-    this.setHeaders();
 };
 
 mix.ui.Recipes.prototype = new mix.lib.EventHandler();
@@ -409,7 +576,10 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
     var self = this;
 
     if (newSortType !== undefined && newSortType !== null) {
+        if (!this.sortType) {this.sortType = 0;}
+        this.domContainer.classList.remove("sortType"+this.sortType);
         this.sortType = newSortType;
+        this.domContainer.classList.add("sortType"+this.sortType);
     }
     //re-arrange drinks
     var removeDrink = function(drinkName, domDrink) {
@@ -432,7 +602,7 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
 
         if (ingList) {
             for(i=0; i < total; i+=1) {
-                var ing = drink.ingredients[i];
+                var ing = drink.ingredients[i].id;
                 if (ingList.haveIngredient(ing)) {have += 1;}
                 need = need || ingList.needIngredient(ing);
             }
@@ -466,36 +636,10 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
 
     //make sure visible categories / h2s are visible and others are not
     for(i=0; i < this.catContentDom.length; i+=1) {
-        if (!this.catContentDom[i].hasChildNodes()) {
+        if (mix.lib.trim(this.catContentDom[i].innerHTML) === "") {
             this.catTitleDom[i].style.display = "none";
         } else {
             this.catTitleDom[i].style.display = "";
-        }
-    }
-};
-
-/**
- * Sets the text in the category headers to reflect a
- * new category sort-by type.
- * @param {mix.ui.SortIncompleteBy} newCat the new sort
- *      method to update the category headers to reflect.
- * @this {mix.ui.Recipes}
- */
-mix.ui.Recipes.prototype.setHeaders = function(newCat) {
-    var num = 0;
-    if (newCat === undefined) {
-        newCat = mix.ui.SortIncompleteBy.NUMBER_NEEDED;
-    }
-    for(var i=0; i<this.catTitleDom.length; i+=1) {
-        var last = i === this.catContentDom.length - 1;
-        var first = i === 0;
-        if (newCat === mix.ui.SortIncompleteBy.NUMBER_NEEDED) {
-            num = last ? i+"+" : i+"";
-            this.catTitleDom[i].innerHTML = "Missing <span class=\"ingNum\">"+num+"</span> Ingredients";
-        } else { // % Have
-            num = "<span class=\"ingNum\">"+(last ? "20" : (100-i*10))+"%</span>";
-            var perc = first ? num : last ? num+" or Less" : "At Least "+num;
-            this.catTitleDom[i].innerHTML = "Have "+perc+" of Ingredients";
         }
     }
 };
@@ -628,47 +772,16 @@ mix.lib.LocalStore.prototype.writeSettings = function(settings) {
 
 // ------------------- ON LOAD ------------------ //
 document.addEventListener("DOMContentLoaded", function(e) {
-    var makeDomEl = mix.lib.makeDomEl;
-    //recipe creating functions
-    var createFullRecipe = function(drinkName) {
-        var drink = mix.data.drinks[drinkName];
-        var isIba = drink["isIba"] ? " iba" : " notIba";
-        var dom = makeDomEl("li", {
-            className: isIba
-        });
-        dom.innerHTML += drink["html"];
-        var shadowBoxDom = makeDomEl("div", {className:"recipeShadowBox"});
-        dom.appendChild(shadowBoxDom);
-        var shadowMaskDom = makeDomEl("div", {className:"recipeShadowMask"});
-        shadowBoxDom.appendChild(shadowMaskDom);
-        shadowMaskDom.appendChild(makeDomEl("div", {className:"recipeShadow"}));
-        shadowMaskDom.appendChild(makeDomEl("div", {className:"recipeShadow"}));
-
-        return dom;
-    };
-
-    var createRecipeSidebarItem = function(drinkName) {
-        var drink = mix.data.drinks[drinkName];
-        var isIba = drink["isIba"] ? "iba" : "notIba";
-        var dom = makeDomEl("li", {
-            className: isIba
-        });
-        var ingString = "";
-        for(var i=0; i < drink.ingredients.length; i++) {
-            if (ingString !== "") {ingString += ", ";}
-            ingString += drink.ingredients[i];
-        }
-        dom.appendChild(makeDomEl("h3", {innerHTML: drinkName}));
-        dom.appendChild(makeDomEl("div", {innerHTML: ingString}));
-
-        return dom;
-    };
-
+    //load templates
+    var templates = new mix.lib.TemplateManager();
+    templates.addTemplate("ingredient", document.getElementById("TemplateIngredient"));
+    templates.addTemplate("recipe", document.getElementById("TemplateRecipeCard"));
+    templates.addTemplate("categoryHeader", document.getElementById("TemplateCategoryTitle"));
+    templates.addTemplate("categoryList", document.getElementById("TemplateCategoryList"));
 
     //setup the main controllers
-    var ingredients = new mix.ui.Ingredients(document.querySelector(".ingredients"));
-    var recipes = new mix.ui.Recipes(document.querySelector(".recipes"), createFullRecipe);
-    //var recipes = new mix.ui.Recipes(document.querySelector(".recipeList"), createRecipeSidebarItem);
+    var ingredients = new mix.ui.Ingredients(document.querySelector(".ingredients"), templates, "ingredient");
+    var recipes = new mix.ui.Recipes(document.querySelector(".recipes"), templates, "recipe", "categoryHeader", "categoryList");
     var settings = new mix.ui.Settings(document.querySelector(".settings"));
     var localStore = new mix.lib.LocalStore();
 
@@ -690,7 +803,6 @@ document.addEventListener("DOMContentLoaded", function(e) {
     settings.addEventListener("sortIncomplete", function(e) {
         if (e.newValue === e.oldValue) {return;}
         recipes.changeIngredient(ingredients, settings, e.newValue);
-        recipes.setHeaders(e.newValue);
     });
 
     //enable browser-specific features

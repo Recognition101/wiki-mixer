@@ -29,6 +29,10 @@ def getPage(url):
 
     return ret
 
+
+def stripTags(myStr):
+    return re.sub('<[^>]*>', '', myStr)
+
 wikiDataFile = "./wikiData.json"
 optiDataFile = "./optiData.js"
 ingDataFile = "./ingData.js"
@@ -126,7 +130,8 @@ def sanitizeIngredient(ing):
     #all amounts
     ing = re.sub("^.{0,4}(us)?\s*(fl|fluid)?\s*(oz|ounce)[^\s]*\s*", "", ing)
     repPattern = "^\(?.{0,10}(pinch|a pinch|teaspoon|tsp|tbsp|cup|measure" + \
-                 "|pint|dash|sprig|cl|ml|shot|part|drop|oz|ounce)" + \
+                 "|pint|dash|sprig|cl|ml|shot|part|drop|oz|ounce" + \
+                 "|millilitres)" + \
                  "[es\.\)]*(\s*of)?\s*"
     ing = re.sub(repPattern, "", ing)
     ing = re.sub(repPattern, "", ing)
@@ -179,7 +184,8 @@ def sanitizeIngredient(ing):
         "lime cut into 4 wedges": "lime",
         "lime wedge": "lime",
         "coca-cola": "coke",
-        "baileys": "baileys irish cream",
+        "baileys": "irish cream (baileys)",
+        "irish cream": "irish cream (baileys)",
         "port wine": "port",
         "absinthe or herbsaint": "herbsaint",
         "bourbon": "whiskey (bourbon)",
@@ -199,10 +205,13 @@ def sanitizeIngredient(ing):
         "syrup (one sugar cube or 1 tsp simple)": "syrup (simple)",
         "syrup or sugar (simple)": "syrup (simple)",
         "whiskey (rye or canadian)": "whiskey (rye)",
+        "whiskey (canadian rye)": "whiskey (canadian)",
         "whiskey (scotch or rye)": "whiskey (scotch)",
         "wine (brut champagne or other dry sparkling)": "wine (dry sparkling)",
+        "wine (dry white)": "wine (white)",
         "creme de cacao": "creme de cacao (white)",
         "gin, not no bathtub stuff; london dry or genever (good)": "gin",
+        "gin (one or two handles)": "gin",
         "half-and-half or fresh cream": "cream",
         "heavy cream": "cream",
         "juice (ly squeezed lemon)": "juice (lemon)",
@@ -228,33 +237,42 @@ def sanitizeIngredient(ing):
         "sugar cube": "sugar",
         "lillet blanc": "lillet",
         "leaves of mint": "mint",
-        "chilled carbonated water": "tonic water"
+        "chilled carbonated water": "tonic water",
+        "vermouth (sweet)": "vermouth (sweet red)"
     }
     if ing in specialCases:
         ing = specialCases[ing]
 
     return ing.lower()
 
+nameToHtml = {}
 for drink in data:
     ingList = re.findall("<th.*?ingredients.*?<ul[^>]*>(.*?)</ul",
                          drink["htmlClean"], reOpts)
+
+    ibaIngList = re.findall("<th.*?specified ingredients.*?<ul[^>]*>(.*?)</ul",
+                         drink["htmlClean"], reOpts)
+
+    if len(ibaIngList) > 0:
+        ingList = ibaIngList
+
+    #ensure drink has ingredients
     if len(ingList) < 1:
         print("WARNING: Drink being discarded due to lack of ingredients: %s" %
                 drink["name"])
     else:
-        htmlClean = drink["htmlClean"]
-        htmlClean = re.sub("<tr[^>]*>[^<>]*<th[^>]*>\s*" +
-                           "Primary alcohol by volume.*?<\\/tr>",
-                           "", htmlClean, 0,
-                           re.I | re.M | re.DOTALL)
-        htmlClean = re.sub("<tr[^>]*>[^<>]*<th[^>]*>\s*type.*?<\\/tr>",
-                           "", htmlClean, 0,
-                           re.I | re.M | re.DOTALL)
-        inOptiData = drink["name"] in optiData
-        if inOptiData and htmlClean != optiData[drink["name"]]["html"]:
+        name = drink["name"]
+        html = drink["htmlClean"]
+
+        #ensure we don't already have that drink
+        if name in optiData and html != nameToHtml[name]:
             print("WARNING: Collapsing two different recipes: %s" %
                     drink["name"])
-        elif not drink["name"] in optiData:
+
+        elif not name in optiData:
+            nameToHtml[name] = html
+
+            #get the list of ingredients
             ings = re.findall("<li[^>]*>(.*?)</li", ingList[0], reOpts)
             ingList = []
             for ing in ings:
@@ -263,25 +281,78 @@ for drink in data:
                 ing = sanitizeIngredient(ing)
                 if ing not in ingredients:
                     ingredients[ing] = []
-                ingredients[ing].append(drink["name"])
-                ingList.append(ing)
+                ingredients[ing].append(name)
                 if ing == "":
                     print("WARNING: Ingredient %s compressed into \"\"" %
                             oldIng)
+                else:
+                    ingList.append({"name": oldIng, "id": ing})
 
-            cleanHtml = drink["htmlClean"].lower()
-            isIba = cleanHtml.find("iba official cocktail") >= 0
+            #get assets
+            def makeAsset(content, isHidden, img=None):
+                ret = {
+                    "txt": content,
+                    "cls": "hideRow" if isHidden else ""
+                }
+                if img is not None:
+                    ret["img"] = img
+
+                return ret
+
+            def arr0Str(arr):
+                return arr[0] if len(arr) > 0 else ""
+
+            pic = re.findall(
+                r"""<t[hd][^>]*?colspan[\s='"]*2[^>]*>[\s\n]*""" +
+                 """(?:<a[^>]*>)?[\s\n]*<img[^>]*?src[\s='"]*([^'"]*)""",
+                html, reOpts)
+            pic = arr0Str(pic)
+            pic = makeAsset(pic, pic == "")
+
+            served = re.findall(r"served\s*</th>[\s\n]*<td[^>]*>(.*?)</td>",
+                    html, reOpts)
+            served = stripTags(arr0Str(served))
+            served = makeAsset(served, served == "")
+
+            garnish = re.findall(r"garnish\s*</th>[\s\n]*<td[^>]*>(.*?)</td>",
+                    html, reOpts)
+            garnish = arr0Str(garnish)
+            garnishLi = re.findall(r"<li[^>]*>(.*?)</li>", garnish, reOpts)
+            garnish = garnishLi if len(garnishLi) > 0 else [garnish]
+            garnish = makeAsset(garnish, garnish[0] == "")
+
+            glass = re.findall(r"drinkware\s*</th>[\s\n]*<td[^>]*>(.*?)</td>",
+                    html, reOpts)
+            glass = arr0Str(glass)
+            glassTxt = stripTags(glass).strip()
+            glassImg = re.findall(r"""<img[^>]*?src[\s='"]*(.*?)['"]""",
+                    glass, reOpts)
+            glassImg = glassImg if len(glassImg) > 0 else None
+            glass = makeAsset(glassTxt, glassTxt == "", glassImg)
+
+            prep = re.findall(r"preparation\s*</th>[\s\n]*<td[^>]*>(.*?)</td>",
+                    html, reOpts)
+            prep = arr0Str(prep)
+            prep = makeAsset(prep, prep == "")
+
+            isIba = drink["htmlClean"].lower().find(
+                    "iba official cocktail") >= 0
+
             optiData[drink["name"]] = {
-                "html": htmlClean,
-                "name": drink["name"],
+                "name": name,
                 "baseName": drink["baseName"],
                 "url": drink["url"],
-                "isIba": isIba,
+                "pic": pic,
+                "serve": served,
+                "garnish": garnish,
+                "glass": glass,
+                "prep": prep,
+                "ibaCls": "iba" if isIba else "",
                 "ingredients": ingList
             }
 
 f = open(optiDataFile, 'w')
-f.write("mix.data.drinks=" + json.dumps(optiData))
+f.write("mix.data.drinks=" + json.dumps(optiData) + ";")
 f.close()
 
 f = open(ingDataFile, 'w')
