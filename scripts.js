@@ -31,6 +31,30 @@ mix.lib.safeRetrieve = function(obj, keys) {
 };
 
 /**
+ * Searches up the dom tree until a given function
+ * returns true, and then returns that function.
+ * @param {Node} dom the dom node to start at
+ * @param {function(Node):boolean} test the test that each parent
+ *      will be run on.
+ * @param {number=-1} max the maximum number of nodes to run through.
+ *      If 0 or a negative number is given, it traverses all nodes.
+ *      By default it is -1.
+ * @return {?Node} the node that test returned true for, or null if
+ *      no node did
+ */
+mix.lib.scanDomUp = function(dom, test, max) {
+    if (max === undefined || max === null) {max = -1;}
+    while(dom && max !== 0) {
+        if (test(dom)) {
+            return dom;
+        }
+        dom = dom.parentNode;
+        max -= 1;
+    }
+    return null;
+};
+
+/**
  * Given a dom node, remove it from its parent if it has one.
  * @param {Node} dom the dom node to remove
  */
@@ -238,6 +262,8 @@ mix.lib.TemplateManager.prototype.addTemplate = function(id, dom) {
     };
 
     mix.lib.domRemove(dom);
+    dom.tmp__isTemplate = true;
+    dom.tmp__data = {};
 };
 
 /**
@@ -264,10 +290,52 @@ mix.lib.TemplateManager.prototype.generateDom = function(id, data) {
  * @param {Node} dom the DOM Node to fill with data
  * @param {Object} data the data to fill the DOM with
  */
-mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data) {
-    var fill = dom.querySelectorAll("*[data-html]");
+mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data, contextLevel) {
+    this.populateTemplateRec(id, dom, data, false, 0);
+};
+
+/**
+ * Given a DOM Node, this function lets you know if that node is a
+ * template or template fragment (and thus has associated data).
+ * @param {Node} dom the dom node to test
+ * @return {boolean} true if this node is a template or fragment
+ */
+mix.lib.TemplateManager.isTemplate = function(dom) {
+    return dom && dom.tmp__isTemplate;
+};
+
+/**
+ * Gets the data associated with this template or template fragment.
+ * Returns null if this dom node is not a template or template fragment.
+ * @param {Node} dom the dom node to fetch data for
+ * @return {?Object} the data associated, or null if no data is associated
+ */
+mix.lib.TemplateManager.getData = function(dom) {
+    if (dom && dom.tmp__isTemplate) {
+        return dom.tmp__data;
+    }
+    return null;
+};
+
+/**
+ * The actual implementation of the above method.
+ * @private
+ * @param {string} id the Template ID
+ * @param {Node} dom the DOM Node to fill with data
+ * @param {Object} data the data to fill the DOM with
+ * @param {boolean} initialFrag true if this is the initial population of a data fragment (not a template)
+ * @param {number} contextLevel maintains how far into recursion we are
+ */
+mix.lib.TemplateManager.prototype.populateTemplateRec = function(id, dom, data, initialFrag, contextLevel) {
+    var query = initialFrag ? "*[data-html]" :
+                contextLevel === 0 ? "*[data-html]:not([data-ctx])" :
+                "*[data-html][data-ctx=\""+contextLevel+"\"]";
+    var fill = dom.querySelectorAll(query);
     var keys = null, attrs = null, prevElems=null, context = null;
     var newHtml = "", i=0, j=0;
+    dom.tmp__data = data;
+    dom.tmp__isTemplate = true;
+
     for(i=0; i < fill.length; i+=1) {
         keys = fill[i].getAttribute("data-html");
         newHtml = undefined;
@@ -277,8 +345,12 @@ mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data) {
             keys = keys ? keys.split(".") : [];
             newHtml = mix.lib.safeRetrieve(data, keys);
         }
-        if (newHtml !== undefined && newHtml !== fill[i].innerHTML) {
+        if (newHtml !== undefined && (""+newHtml) !== fill[i].innerHTML) {
             fill[i].innerHTML = newHtml;
+            console.log(fill[i], "SET", newHtml, "CTX="+contextLevel);
+            if (contextLevel > 0 && initialFrag) {
+                fill[i].setAttribute("data-ctx", contextLevel);
+            }
         }
     }
 
@@ -298,12 +370,20 @@ mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data) {
                     keys[1] = keys[1] ? keys[1].split(".") : [];
                     dat = mix.lib.safeRetrieve(data, keys[1]);
                 }
-                if (dat && domAttrs.getAttribute(keys[0]) !== dat) {
+                if (dat !== undefined && domAttrs.getAttribute(keys[0]) !== (""+dat)) {
                     domAttrs.setAttribute(keys[0], dat);
                 }
             }
         }
+
+        if (contextLevel > 0 && initialFrag) {
+            domAttrs.setAttribute("data-ctx", contextLevel);
+        }
     };
+
+    query = initialFrag ? "*[data-attr]" :
+            contextLevel === 0 ? "*[data-attr]:not([data-ctx])" :
+            "*[data-attr][data-ctx=\""+contextLevel+"\"]";
     fill = dom.querySelectorAll("*[data-attr]");
     if (dom.getAttribute("data-attr")) {
         replaceAttrs(dom);
@@ -324,11 +404,11 @@ mix.lib.TemplateManager.prototype.populateTemplate = function(id, dom, data) {
                 prevElems = fill[i].querySelectorAll("*[data-frag="+attrs[1]+"]");
                 for(j=0; j < context.length; j+=1) {
                     if (j < prevElems.length) {
-                        this.populateTemplate(id, prevElems[j], context[j]);
+                        this.populateTemplateRec(id, prevElems[j], context[j], false, contextLevel + 1);
                     } else {
                         newDom = this.templates[id].frags[attrs[1]].cloneNode(true);
                         fill[i].appendChild(newDom);
-                        this.populateTemplate(id, newDom, context[j]);
+                        this.populateTemplateRec(id, newDom, context[j], true, contextLevel + 1);
                     }
                 }
                 for(j=context.length; j < prevElems.length; j+=1) {
@@ -402,6 +482,7 @@ mix.ui.Ingredients.prototype.loadData = function loadData() {
             "idNone": idNone,
             "idHave": idHave,
             "idNeed": idNeed,
+            "haveStatus": "ingItem stNone",
             "nameIng": ing
         });
         this.domList.appendChild(domLi);
@@ -412,9 +493,10 @@ mix.ui.Ingredients.prototype.loadData = function loadData() {
     }
 
     var self = this;
-    this.domList.addEventListener("change", function(e) {
-        var name = e.target.parentNode && e.target.parentNode.querySelector("label");
-        name = name && name.innerHTML && name.innerHTML.replace(/(^(\s|\n)*)|((\s|\n)*$)/g, "");
+    this.domList.addEventListener("click", function(e) {
+        var realTarget = mix.lib.scanDomUp(e.target, function(dom) {return dom.classList.contains("ingItem");}, 5);
+        var name = e.target.parentNode && e.target.parentNode.querySelector("div.ingText");
+        name = name && mix.lib.trim(name.innerHTML);
         if (e.target.value && e.target.checked && name) {
             if (e.target.value === "none") {
                 delete self.ingMap[name];
@@ -426,7 +508,7 @@ mix.ui.Ingredients.prototype.loadData = function loadData() {
                 self.ingMap[name] = 2;
             }
 
-            self.setValue("lastChange", name);
+            //self.setValue("lastChange", name);
         }
     }, false);
 };
