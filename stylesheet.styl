@@ -10,6 +10,14 @@ display()
     else
         display: arguments;
 
+user-select()
+    -webkit-touch-callout: arguments;
+    -webkit-user-select: arguments;
+    -khtml-user-select: arguments;
+    -moz-user-select: arguments;
+    -ms-user-select: arguments;
+    user-select: arguments;
+
 /** ---- GENERIC OBJECTS ---- **/
 shadowDark =  0px  1px 1px rgba(255,255,255,0.7)
 shadowLight = 0px -1px 1px rgba(0,0,0,0.6)
@@ -221,128 +229,81 @@ header
 .ingredients
     width: 275px
     border-right: solid 1px colorGreyDark
-    overflow: scroll
-    background-image: -webkit-gradient(linear, left top, 0 10, from(colorGreyMid), to(rgba(colorGreyMid, 0.0)))
-    transform: translate(0, 0)
-    -webkit-overflow-scrolling: touch
-    -webkit-backface-visibility: hidden
-    -webkit-perspective: 1000
+
+    background-image: -webkit-gradient(linear, left top, 0 10,
+        from(colorGreyMid), to(rgba(colorGreyMid, 0.0)))
     background-repeat: no-repeat;
-    background-color: white;
-    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
-    background-attachment: local, local, scroll, scroll;
 
-.ingredients > button
-    padding: 5px 60px;
-    margin-left: 60px;
+    overflow-x: hidden
+    overflow-y: scroll
+    -webkit-overflow-scrolling: touch
+    user-select: none
+    cursor: pointer
 
-ul.ingredientList > li:not(:last-child)
-    border-bottom: 1px solid #f5f5f5;
+.ingredientList
+    list-style:  none
+.ingredientList > li
+    position: relative
+    -webkit-backface-visibility: hidden;
 
-ul.ingredientList > li:first-child
-    background-image: linear-gradient(top, colorGreyMid, 20% white, white)
+.ingredientList > li .ingText
+    display: inline-block
+    position: relative
+    min-width: 50px
+    height: 17px
+    background-color: white
+    transform: translate(0, 0)
+    transition: transform 0.2s ease-in-out
 
-ul.ingredientList > li:first-child > label
-    padding-top: 12px;
-
-ul.ingredientList > li
+.ingredientList > li.required .ingText
+    transform: translate(30px, 0)
+    
+.ingredientList > li
     background-color: white
 
-ul.ingredientList > li:nth-child(2n) {
+.ingredientList > li:nth-child(2n) .ingText,
+.ingredientList > li:nth-child(2n)
     background-color: colorGreyLight
-}
-ul.ingredientList > li
-    text-transform: capitalize
-    list-style-type: none
-    overflow: hidden
-    display: box
-    box-orient: horizontal
 
-ul.ingredientList > li .chkSymbol
-    font-size: 16px
-    width: 15px
-    height: 18px
-    border: 2px solid colorGreyLight
-    padding: 0px 0px 0px 3px
-    border-radius: 32px
-    box-shadow: 0px 1px 5px #888
-    color: white
-    text-shadow: shadowLight
-    opacity: 0
-    background-image: linear-gradient(top, #0FB20F, #9BF99B)
-    transform: translate(20px, 0px)
-    transition-property: opacity, -webkit-transform
-    transition-duration: 500ms, 500ms
-    transition-timing-function: ease-in-out, ease-out
-
-ul.ingredientList > li > .ingBgrnd
-    left: 0px; right: 0px;
-    top: 0px; bottom: 0px;
-    pointer-events: none;
-    transition: background-color 500ms ease-in-out;
-
-/** Three-State Toggle **/
-ul.ingredientList > li > *
-    -moz-user-select: none;
-    -khtml-user-select: none;
-    user-select: none;
-
-ul.ingredientList > li > input,
-ul.ingredientList > li > label
-    display: none;
-    cursor: pointer;
-
-ul.ingredientList > li > label
-    padding: 7px 7px 7px 14px;
-    box-flex: 1;
-
-ul.ingredientList > li > input.ingNone:checked ~ label.ingHave,
-ul.ingredientList > li > input.ingHave:checked ~ label.ingNeed,
-ul.ingredientList > li > input.ingNeed:checked ~ label.ingNone
-    display: block;
-
-ul.ingredientList > li > input.ingNone:not(:checked) ~ label
-    color: colorHighlightDark;
-
-ul.ingredientList > li > input.ingNone:not(:checked) ~ .ingBgrnd
-    background-color: rgba(colorHighlightMid,0.2);
-
-.ingCheckState
-    display: box
-    box-orient: horizontal
-
-    height: 100%
-    width: 0px
-
-    transform: translate(0px, 0px)
-    cursor: default;
-    pointer-events: none
-.ftAnimateIng .ingCheckState
-    transition: transform 250ms ease-in-out
-
-ul.ingredientList > li > input.ingHave:checked ~ .ingCheckState
-    transform: translate(-34px, 0px)
-
-ul.ingredientList > li > input.ingNeed:checked ~ .ingCheckState
-    transform: translate(-68px, 0px)
-
-.ingCheckState > *
-    box-flex: 1
-    padding: 7px 17px
-    height: 100%
-    color: #999
+.ingredientList > li .ingR
+    position: absolute
+    top: 0
+    width: 50px;
+    background-image: linear-gradient(top, colorHighlightLight, colorHighlightMid)
+    font-weight: bold
     text-shadow: shadowDark
 
-.ingCheckState > *:first-child
-    color: #6060AA
-    margin-right: 5px
+.ingredientList > li .ingText,
+.ingredientList > li .ingR
+    padding: 8px
 
-.ingCheckState > *:nth-child(2)
-    margin-top: 3px
-    padding: 3px 30px 3px 12px
-    border: 1px solid #AA9090
-    border-radius: 7px
-    background-color: rgba(240, 200, 200, 0.4)
+.ingredientList > li .ingCheck
+    position: absolute
+    right: 10px
+    top: 9px
+
+    width: 10px
+    height: 10px
+    padding: 2px
+    border: 2px solid colorGreyMid
+    padding: 0 1px 0 0
+
+    font-size: fsLarge
+    line-height: 7px
+    color: colorHighlightDark
+    background-color: colorHighlightLight
+    border-radius: 5px
+    
+    opacity: 0
+    transition: opacity 500ms ease
+    
+.ingredientList > li.have:not(.required) .ingCheck
+    opacity: 1
+
+.ingredientList > li.have .ingText,
+.ingredientList > li.required .ingText
+    color: colorHighlightDark
+    font-weight: bold
 
 /** ------------- RECIPE SIDEBAR ------------- **/
 .recipeList

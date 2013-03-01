@@ -2,6 +2,8 @@
 <html>
     <head>
         <title>omni-mix-r</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
         <script type="text/javascript" src="./scripts.js"></script>
         <script type="text/javascript" src="./data/ingData.js"></script>
         <script type="text/javascript" src="./data/optiData.js"></script>
@@ -21,19 +23,16 @@
 
         <div class="hpanels">
             <div class="ingredients">
-                <button>Clear</button>
-                <ul class="ingredientList" onclick="">
-                    <li id="TemplateIngredient">
-                        <input type="radio" data-attr="name: idIng; id: idNone" class="ingNone" value="none" checked>
-                        <input type="radio" data-attr="name: idIng; id: idHave" class="ingHave" value="have">
-                        <input type="radio" data-attr="name: idIng; id: idNeed" class="ingNeed" value="need">
-                        <div class="ingBgrnd"></div>
-                        <label data-attr="for: idNone" data-html="nameIng" class="ingNone"></label>
-                        <label data-attr="for: idHave" data-html="nameIng" class="ingHave"></label>
-                        <label data-attr="for: idNeed" data-html="nameIng" class="ingNeed"></label>
-                        <div class="ingCheckState"><div>&#x2714</div><div>R</div></div>
-                    </li>
-                </ul>
+                <div id="TemplateIngedientSidebar">
+                    <button>Clear</button>
+                    <ul data-loop="ingredients in ingredientLi" class="ingredientList" onclick="">
+                        <li data-frag="ingredientLi" data-attr="class: classNm">
+                            <div class="ingR">R</div>
+                            <div class="ingCheck">&#x2714</div>
+                            <div class="ingText" data-html="name"></div>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="recipeList">
             </div>

@@ -42,7 +42,7 @@ mix.lib.safeRetrieve = function(obj, keys) {
  * @return {?Node} the node that test returned true for, or null if
  *      no node did
  */
-mix.lib.scanDomUp = function(dom, test, max) {
+mix.lib.domScanUp = function(dom, test, max) {
     if (max === undefined || max === null) {max = -1;}
     while(dom && max !== 0) {
         if (test(dom)) {
@@ -55,12 +55,143 @@ mix.lib.scanDomUp = function(dom, test, max) {
 };
 
 /**
+ * When run, this returns an object describing what features this
+ * browser can currently support. The object is cached, so only the
+ * first call to this function will execute feature detection,
+ * subsequent calls just return the cached value.
+ * @return {{ios: boolean, ipad: boolean, pixelDensity: number}}
+ *      a list of features, as follows:<br/><ul>
+ *          <li>ios: true if this is an ios device</li>
+ *          <li>ipad: true if this is an ipad</li>
+ *          <li>pixelDensity: the screen's pixel density</li>
+ *      </ul>
+ */
+mix.lib.featureDetection = (function() {
+    var cache = null;
+    return function() {
+        if (cache === null) {
+            var ua = navigator.userAgent.toLowerCase();
+            var pd = window.devicePixelRatio;
+
+            cache = {
+                touch: ua.indexOf("android") > -1 ||
+                     ua.indexOf("ipad") > -1 ||
+                     ua.indexOf("iphone") > -1,
+                ipad: ua.indexOf("ipad") > -1,
+                pixelDensity: pd ? pd : 1
+            };
+            cache.clickEvent = cache.touch ? "touchend" : "click";
+        }
+
+        return cache;
+    };
+}());
+
+/**
  * Given a dom node, remove it from its parent if it has one.
  * @param {Node} dom the dom node to remove
  */
 mix.lib.domRemove = function(dom) {
     if (dom.parentNode) {
         dom.parentNode.removeChild(dom);
+    }
+};
+
+/**
+ * Given a DOM node, this function sets that node up to be a
+ * DOM slider that can be dragged on or off. Note that this only works
+ * on DOM nodes that are template-bound.
+ * @param {Node} dom the root DOM node that we will be listening to. it may
+ *          contain one or more elements that will be slide-able
+ * @param {function(boolean, Object)} switchedCallback this function will be
+ *          called with either true if switch is moved right, false if moved
+ *          left. The second parameter is the data that is associated with
+ *          the template that was just switched.
+ * @param {function(boolean, Object)=} endedCallback this function will be
+ *          called with two arguments: 1) A boolean indicating whether the
+ *          user changed the state of the slider (true) or if they did not
+ *          fully slide a specific slider (false), and 2) the template data
+ *          associated with whatever slider was being manipulated. It is
+ *          called at the end of user-interaction (mouse/touch up), whether
+ *          or not the user made a change. If not given, nothing will be
+ *          called.
+ * @param {Number=10} xLim the limit you have to pull before activating
+ * @param {Number=10} yLim the limit you you can move in the y-directon
+ *          before cancelling the switch
+ */
+mix.lib.domSlider = function(dom, switchedCallback, endedCallback, xLim, yLim) {
+    if (xLim === null || xLim === undefined) {
+        xLim = 10;
+    }
+    if (yLim === null || yLim === undefined) {
+        yLim = 10;
+    }
+    var isDragDone = function(data, x, y) {
+        if (Math.abs(data.drag.y - y) > yLim) {
+            return true;
+        }
+        var deltaX = x - data.drag.x;
+        if (deltaX > xLim) {
+            switchedCallback(true, data);
+            return true;
+        } else if (deltaX < -xLim) {
+            switchedCallback(false, data);
+            return true;
+        }
+
+        return false;
+    };
+
+    var dragStarted = function(data, x, y) {
+        data.drag = {x: x, y: y};
+    };
+
+    var dragEnded = function(data, x, y) {
+        if (!data.drag) {return;}
+
+        var didChange = isDragDone(data, x, y);
+        data.drag = null;
+        if (endedCallback) {endedCallback(didChange, data);}
+    };
+
+    var dragMoved = function(data, x, y) {
+        if (!data.drag) {return;}
+
+        var done = isDragDone(data, x, y);
+        if (done) {
+            data.drag = null;
+        }
+    };
+
+    var makeListener = function(eventName, callback, isTouch) {
+        dom.addEventListener(eventName, function(e) {
+            var dom = mix.lib.domScanUp(
+                e.target, mix.lib.TemplateManager.isTemplate, 10);
+                var data = mix.lib.TemplateManager.getData(dom);
+
+                var x = e.clientX;
+                var y = e.clientY;
+                if (isTouch && event.targetTouches[0]) {
+                    x = event.targetTouches[0].pageX;
+                    y = event.targetTouches[0].pageY;
+                } else if (isTouch && data.drag) {
+                    x = data.drag.x;
+                    y = data.drag.y;
+                }
+                if (data) {callback(data, x, y);}
+        });
+    };
+
+    var fd = mix.lib.featureDetection();
+    if (!fd.touch) {
+        makeListener("mousedown", dragStarted, false);
+        makeListener("mousemove", dragMoved, false);
+        makeListener("mouseup", dragEnded, false);
+    } else {
+        makeListener("touchstart", dragStarted, true);
+        makeListener("touchmove", dragMoved, true);
+        makeListener("touchend", dragEnded, true);
+        makeListener("touchcancel", dragEnded, true);
     }
 };
 
@@ -77,6 +208,7 @@ mix.lib.ChangeNotification = function(oldVal, newVal) {
 
 /**
  * This class is a very simple KVO implementation.
+ * TODO: deprecate this
  * @class
  * @constructor
  */
@@ -347,7 +479,6 @@ mix.lib.TemplateManager.prototype.populateTemplateRec = function(id, dom, data, 
         }
         if (newHtml !== undefined && (""+newHtml) !== fill[i].innerHTML) {
             fill[i].innerHTML = newHtml;
-            console.log(fill[i], "SET", newHtml, "CTX="+contextLevel);
             if (contextLevel > 0 && initialFrag) {
                 fill[i].setAttribute("data-ctx", contextLevel);
             }
@@ -424,163 +555,142 @@ mix.lib.TemplateManager.prototype.populateTemplateRec = function(id, dom, data, 
  * the ingredients that are selected.
  * @param {Element} domContainer the dom element containing this widget
  * @param {mix.lib.TemplateManager} templates the template manager to pull from
- * @param {string} templateName the name of the template describing an ingredient
+ * @param {string} templateName the name of the template describing the sidebar
+ * @param {Object.<string, mix.ui.IngStatus>|null=} extData an extra set of
+ *      data consisting of initial name to status overrides to apply while
+ *      setting the UI up for the first time.
  * @class
  * @constructor
  */
-mix.ui.Ingredients = function Ingredients(domContainer, templates, templateName) {
+mix.ui.Ingredients = function Ingredients(domContainer, templates, templateName, extData) {
+    var self = this;
     this.domMain = domContainer;
-    this.domList = domContainer.querySelector("ul.ingredientList");
-    this.domIngMap = {}; // ingName -> {"none": dom, "have": dom, "need": dom} (dom of radio button)
-    this.ingMap = {}; // ingName -> 1 (has it) | 2 (needs it) | undefined (neither)
-    this.domClearBtn = domContainer.querySelector("button");
+    this.tmp = templates;
+    this.tmpNm = templateName;
+
+    this.ingChangeFns = [];
+    this.clearFns = [];
+    var fireChangeFns = function(data) {
+        var name = data["name"];
+        var change = data["required"] ? mix.ui.IngStatus.NEED :
+                     data["have"] ? mix.ui.IngStatus.HAVE :
+                     mix.ui.IngStatus.NONE;
+        self.ingChangeFns.forEach(function(fn){fn(name, change);});
+    };
+
+    var generateClass = function(data) {
+        return ((data["required"] ? "required " : "") + 
+                (data["have"] ? "have " : "")).trim();
+    };
+
+    var fd = mix.lib.featureDetection();
+
+    var dYMax = 10;
+    var dXMax = 10;
+
+    //make the data as we need it, importing if needed
+    this.data = {ingredients: [], ingMap: {}};
+
+    for(var ing in mix.data.ingredients) {
+        var obj = {"name": ing};
+        this.data.ingredients.push(obj);
+        this.data.ingMap[ing] = obj;
+        if (extData && ing in extData) {
+            switch(extData[ing]) {
+                case mix.ui.IngStatus.NEED: obj["required"] = true; break;
+                case mix.ui.IngStatus.HAVE: obj["have"] = true; break;
+            }
+            obj["classNm"] = generateClass(obj);
+        }
+    }
+    this.data.ingredients.sort(function(a, b) {
+        return a["name"] < b["name"] ? -1 : 
+               a["name"] > b["name"] ? 1 : 0;
+    });
 
     this.templates = templates;
     this.templateName = templateName;
 
-    if (this.domClearBtn) {
-        var self = this;
-        this.domClearBtn.addEventListener("click", function(e) {
-            for (var ing in self.ingMap) {
-                self.domIngMap[ing]["none"].checked = true;
-            }
-            self.ingMap = {};
-            self.setValue("clear", true);
-        });
-    }
-};
+    //set up the template
+    this.domTmp = templates.generateDom(templateName, this.data);
+    this.domMain.appendChild(this.domTmp);
 
-mix.ui.Ingredients.prototype = new mix.lib.EventHandler();
-
-/**
- * Loads the JSON data and sets the HTML to match the data.
- * @this {mix.ui.Ingredients}
- */
-mix.ui.Ingredients.prototype.loadData = function loadData() {
-    var ingIndex = 0;
-    var ing = null;
-    
-    while(this.domList.hasChildNodes()) {
-        this.domList.removeChild(this.domList.firstChild);
-    }
-
-    var ingList = [];
-    for(ing in mix.data.ingredients) {
-        ingList.push(ing);
-    }
-    ingList.sort();
-
-    var domLi = null;
-    var idNone = "", idHave = "", idNeed = "";
-    for(var i=0; i < ingList.length; i+=1) {
-        ing = ingList[i];
-        idNone = "radIngNone"+i;
-        idHave = "radIngHave"+i;
-        idNeed = "radIngNeed"+i;
-        domLi = this.templates.generateDom(this.templateName, {
-            "idIng": "radIngState"+i,
-            "idNone": idNone,
-            "idHave": idHave,
-            "idNeed": idNeed,
-            "haveStatus": "ingItem stNone",
-            "nameIng": ing
-        });
-        this.domList.appendChild(domLi);
-        this.domIngMap[ing] = {};
-        this.domIngMap[ing]["none"] = document.getElementById(idNone);
-        this.domIngMap[ing]["have"] = document.getElementById(idHave);
-        this.domIngMap[ing]["need"] = document.getElementById(idNeed);
-    }
-
-    var self = this;
-    this.domList.addEventListener("click", function(e) {
-        var realTarget = mix.lib.scanDomUp(e.target, function(dom) {return dom.classList.contains("ingItem");}, 5);
-        var name = e.target.parentNode && e.target.parentNode.querySelector("div.ingText");
-        name = name && mix.lib.trim(name.innerHTML);
-        if (e.target.value && e.target.checked && name) {
-            if (e.target.value === "none") {
-                delete self.ingMap[name];
-
-            } else if (e.target.value === "have") {
-                self.ingMap[name] = 1;
-
-            } else if (e.target.value === "need") {
-                self.ingMap[name] = 2;
-            }
-
-            //self.setValue("lastChange", name);
+    //event handlers (dragging)
+    mix.lib.domSlider(this.domMain, function(isOn, data) {
+        data["required"] = isOn;
+        data["have"] = true;
+        data["classNm"] = generateClass(data);
+        self.tmp.populateTemplate(self.tmpNm, self.domTmp, self.data);
+        fireChangeFns(data);
+    }, function(didChange, data) {
+        if (!data || !data["name"]) {return;}
+        if (!data["required"] && !didChange) {
+            data["have"] = !data["have"];
+            data["classNm"] = generateClass(data);
+            self.tmp.populateTemplate(self.tmpNm, self.domTmp, self.data);
+            fireChangeFns(data);
         }
-    }, false);
+    });
+
+    this.domMain.addEventListener(fd.clickEvent, function(e) {
+        if (e.target.tagName.toLowerCase() !== "button") {return;}
+
+        for(var i = 0; i < self.data.ingredients.length; i+=1) {
+            self.data.ingredients[i]["required"] = false;
+            self.data.ingredients[i]["have"] = false;
+            self.data.ingredients[i]["classNm"] = "";
+        }
+
+        self.tmp.populateTemplate(self.tmpNm, self.domTmp, self.data);
+        self.clearFns.forEach(function(fn){fn();});
+    });
 };
 
 /**
- * Gets if we have or do not have an ingredient of a given name
- * @param {string} ing the ingredient name
- * @this {mix.ui.Ingredients}
- * @return {boolean} true if we have the ingredient
+ * Adds a listener that fires when an ingredients status changes (unless
+ * it was cleared - you must listen for a clear event for that).
+ * @param {function(string, mix.ui.IngStatus)} fn the callback function
  */
-mix.ui.Ingredients.prototype.haveIngredient = function hasIngredient(ing) {
-    return ing in this.ingMap && this.ingMap[ing] >= 1;
+mix.ui.Ingredients.prototype.addIngredientChangeListener = function(fn) {
+    this.ingChangeFns.push(fn);
 };
 
 /**
- * Gets whether or not a given ingredient is "required".
- * @param {string} ing the ingredient name
- * @this {mix.ui.Ingredients}
- * @return {boolean} true if the ingredient is required.
+ * Adds a listener that fires when all ingredients are cleared (set to
+ * NONE status). Note that clearing does not fire any change listener events.
+ * @param {function} fn the function to fire
  */
-mix.ui.Ingredients.prototype.needIngredient = function hasIngredient(ing) {
-    return ing in this.ingMap && this.ingMap[ing] >= 2;
+mix.ui.Ingredients.prototype.addClearListener = function(fn) {
+    this.clearFns.push(fn);
 };
 
 /**
- * Gets how many ingredients are marked as "required".
- * @this {mix.ui.Ingredients}
- * @return {number} the number of "required" ingredients.
+ * Gets the status of a given ingredient. TODO: needs hash cache for O(1)
+ * @param {string} name the name of the ingredient to find status of
+ * @return {mix.ui.IngStatus} the status of the ingredient
  */
-mix.ui.Ingredients.prototype.getNumberNeeded = function getNumberNeeded() {
-    var ret = 0;
-    for(var ing in this.ingMap) {
-        if (this.ingMap[ing] >= 2) {ret+=1;}
+mix.ui.Ingredients.prototype.getIngredientStatus = function(name) {
+    var ing = this.data.ingMap[name];
+    if (ing) {
+        return ing["required"] ? mix.ui.IngStatus.NEED :
+               ing["have"] ? mix.ui.IngStatus.HAVE :
+               mix.ui.IngStatus.NONE;
     }
-    return ret;
+    return mix.ui.IngStatus.NONE;
 };
 
 /**
- * Sets that we have a given ingredient.
- * @param {string} ingName the name of the ingredient that we now have
+ * Gets the number of ingredients that are currently marked as "NEED".
  * @this {mix.ui.Ingredients}
- * @return {boolean} true if we properly set the ingredient, false if
- *      that ingredient is not in the list (and as such was not set).
+ * @return {number} the number of ingredients we need
  */
-mix.ui.Ingredients.prototype.setHave = function setHave(ingName) {
-    if (!(ingName in this.domIngMap)) {
-        return false;
+mix.ui.Ingredients.prototype.numberNeeded = function() {
+    var count = 0;
+    for(var i=0; i < this.data.ingredients.length; i+=1) {
+        count += this.data.ingredients[i]["required"] ? 1 : 0;
     }
-
-    this.domIngMap[ingName]["have"].checked = true;
-    this.ingMap[ingName] = 1;
-    return true;
+    return count;
 };
-
-/**
- * Sets that a given ingredient is "required".
- * @param {string} ingName the ingredient name
- * @this {mix.ui.Ingredients}
- * @return {boolean} true if we properly set the required flag,
- *      false if we couldn't set the property because there
- *      is no ingredient that has that name.
- */
-mix.ui.Ingredients.prototype.setNeed = function setNeed(ingName) {
-    if (!(ingName in this.domIngMap)) {
-        return false;
-    }
-
-    this.domIngMap[ingName]["need"].checked = true;
-    this.ingMap[ingName] = 2;
-    return true;
-};
-
 
 /**
  * Creates a recipe list. This is a list of 10 categories. The categories
@@ -619,8 +729,11 @@ mix.ui.Recipes = function(domContainer, templates, recipeTempId, categoryHeaderT
     }
 
     //content boxes (ol)
-    this.catContentDom = []; //type -> dom root
-    this.catContent = [];    //type -> OrderedArray of drink names
+    //
+    /** @type {Array.<Node>} */
+    this.catContentDom = [];
+    /** @type {Array.<mix.lib.OrderedArray>} */
+    this.catContent = [];
     for(i=0; i < numContainers; i+=1) {
         this.catContent[i] = new mix.lib.OrderedArray();
         this.catContentDom[i] = this.templates.generateDom(this.tidCatList, {
@@ -629,8 +742,10 @@ mix.ui.Recipes = function(domContainer, templates, recipeTempId, categoryHeaderT
     }
 
     //recipes (li)
-    this.drinkDomMap = {}; //drink name -> dom
-    this.drinkCurCat = {}; //drink name -> cat number
+    /** @type {Object.<string, Node>} drink name to dom */
+    this.drinkDomMap = {};
+    /** @type {Object.<string, number>} drink name to category number */
+    this.drinkCurCat = {};
     for(var drinkName in mix.data.drinks) {
         this.drinkDomMap[drinkName] = this.templates.generateDom(this.tidRecipe, mix.data.drinks[drinkName]);
     }
@@ -643,8 +758,6 @@ mix.ui.Recipes = function(domContainer, templates, recipeTempId, categoryHeaderT
     }
 };
 
-mix.ui.Recipes.prototype = new mix.lib.EventHandler();
-
 /**
  * Updates the UI to reflect changes in a given ingredient list.
  * @param {mix.ui.Ingredients} ingList the list of ingredients to pull from
@@ -654,7 +767,6 @@ mix.ui.Recipes.prototype = new mix.lib.EventHandler();
  */
 mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, settings, newSortType) {
     var i = 0;
-    var noNeed = ingList ? ingList.getNumberNeeded() < 1 : true;
     var self = this;
 
     if (newSortType !== undefined && newSortType !== null) {
@@ -673,10 +785,23 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
             domDrink.parentNode.removeChild(domDrink);
         }
     };
-    for(var drinkName in mix.data.drinks) {
-        var have = 0;
+    var addDrink = function(newCatIndex, drinkName, domDrink) {
+        var orderIndex = self.catContent[newCatIndex].insert(drinkName);
+        var drinkAfter = self.catContent[newCatIndex].data[orderIndex+1];
+        if (drinkAfter === null || drinkAfter === undefined) {
+            self.catContentDom[newCatIndex].appendChild(domDrink);
+        } else {
+            self.catContentDom[newCatIndex].insertBefore(domDrink,
+                                            self.drinkDomMap[drinkAfter]);
+        }
+        self.drinkCurCat[drinkName] = newIndex;
+    };
 
-        var need = noNeed;
+    for(var drinkName in mix.data.drinks) {
+        var anyNeeded = ingList.numberNeeded() > 0;
+        var st = mix.ui.IngStatus.NONE;
+        var need = false;
+        var have = 0;
         var drink = mix.data.drinks[drinkName];
         var domDrink = this.drinkDomMap[drinkName];
         var domPar = domDrink.parentNode;
@@ -685,12 +810,14 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
         if (ingList) {
             for(i=0; i < total; i+=1) {
                 var ing = drink.ingredients[i].id;
-                if (ingList.haveIngredient(ing)) {have += 1;}
-                need = need || ingList.needIngredient(ing);
+                st = ingList.getIngredientStatus(ing);
+                need = need || st === mix.ui.IngStatus.NEED;
+                have += st === mix.ui.IngStatus.HAVE ||
+                        st === mix.ui.IngStatus.NEED ? 1 : 0;
             }
         }
         
-        if (need) { //this node has to be added to a cat
+        if ((anyNeeded && need) || !anyNeeded) { //add to a cat
             var newIndex = 0;
             if (!this.sortType || this.sortType === mix.ui.SortIncompleteBy.NUMBER_NEEDED) {
                 newIndex = total - have;
@@ -701,14 +828,7 @@ mix.ui.Recipes.prototype.changeIngredient = function changeIngredient(ingList, s
 
             if (domPar !== this.catContentDom[newIndex]) {
                 removeDrink(drinkName, domDrink);
-                var orderIndex = this.catContent[newIndex].insert(drinkName);
-                var drinkAfter = this.catContent[newIndex].data[orderIndex+1];
-                if (drinkAfter === null || drinkAfter === undefined) {
-                    this.catContentDom[newIndex].appendChild(domDrink);
-                } else {
-                    this.catContentDom[newIndex].insertBefore(domDrink, this.drinkDomMap[drinkAfter]);
-                }
-                this.drinkCurCat[drinkName] = newIndex;
+                addDrink(newIndex, drinkName, domDrink);
             }
 
         } else { //this node shouldn't be in a cat
@@ -767,6 +887,16 @@ mix.ui.SortIncompleteBy = {
 };
 
 /**
+ * An enum listing the options for what state an ingredient can be in.
+ * @enum {number}
+ */
+mix.ui.IngStatus = {
+    NONE: 0,
+    HAVE: 1,
+    NEED: 2
+};
+
+/**
  * An object that manages saving all state to local storage and
  * retrieving it, updating the UI accordingly.
  * @class
@@ -774,6 +904,9 @@ mix.ui.SortIncompleteBy = {
  */
 mix.lib.LocalStore = function() {
     this.kill = !window.localStorage || !JSON.parse || !JSON.stringify;
+
+    if (this.kill) {return;}
+
     try {
         window.localStorage["test"] = "true";
         var tst = window.localStorage["test"];
@@ -787,28 +920,17 @@ mix.lib.LocalStore = function() {
 };
 
 /**
- * Loads all the data from the localstore, updating the UI as needed.
+ * Gets the map of ingredients to their status that is currently stored
+ * in the local storage.
  * @param {mix.ui.Ingredients} ingredients the list of ingredients
- * @this {mix.lib.LocalStore}
+ * @this mix.lib.LocalStore
+ * @return {Object.<string, mix.ui.IngStatus>} the mapping of ingredient
+ *      name to status. If not in the map, assumed NONE.
  */
-mix.lib.LocalStore.prototype.loadFromStorage = function(ingredients) {
-    if (this.kill) {return;}
+mix.lib.LocalStore.prototype.getStoredStatuses = function(ingredients) {
+    if (this.kill) {return {};}
 
-    var ingList = JSON.parse(window.localStorage["ing"]);
-    var keep = false;
-    for(var ing in ingList) {
-        keep = true;
-        if (ingList[ing] === 1) {
-            keep = ingredients.setHave(ing);
-        } else if (ingList[ing] === 2) {
-            keep = ingredients.setNeed(ing);
-        }
-        if (!keep) {
-            delete ingList[ing];
-        }
-    }
-
-    window.localStorage["ing"] = JSON.stringify(ingList);
+    return JSON.parse(window.localStorage["ing"]);
 };
 
 /**
@@ -816,26 +938,25 @@ mix.lib.LocalStore.prototype.loadFromStorage = function(ingredients) {
  * @this {mix.lib.LocalStore}
  */
 mix.lib.LocalStore.prototype.clearIngredients = function clearIngredients() {
+    if (this.kill) {return;}
+
     window.localStorage["ing"] = "{}";
 };
 
 /**
- * Writes data about a single ingredient to the local storage
- * @param {mix.ui.Ingredients} ingredients the list of ingredients
- * @param {string} ingName the ingredient that has changed
+ * Writes the status of a single ingredient to local storage.
+ * @param {string} ingName the name of the ingredient
+ * @param {mix.ui.IngStatus} ingStatus the status of the ingredient
  * @this {mix.lib.LocalStore}
  */
-mix.lib.LocalStore.prototype.writeToStorage = function(ingredients, ingName) {
+mix.lib.LocalStore.prototype.writeToStorage = function(ingName, ingStatus) {
     if (this.kill) {return;}
     
     var ingList = JSON.parse(window.localStorage["ing"]);
-    var haveNeed = ingredients.needIngredient(ingName) ? 2 :
-                    ingredients.haveIngredient(ingName) ? 1 : 0;
-
-    if (haveNeed === 0) {
+    if (ingStatus === mix.ui.IngStatus.NONE) {
         delete ingList[ingName];
     } else {
-        ingList[ingName] = haveNeed;
+        ingList[ingName] = ingStatus;
     }
 
     window.localStorage["ing"] = JSON.stringify(ingList);
@@ -856,32 +977,40 @@ mix.lib.LocalStore.prototype.writeSettings = function(settings) {
 document.addEventListener("DOMContentLoaded", function(e) {
     //load templates
     var templates = new mix.lib.TemplateManager();
-    templates.addTemplate("ingredient", document.getElementById("TemplateIngredient"));
+    templates.addTemplate("ingredientList", document.getElementById("TemplateIngedientSidebar"));
     templates.addTemplate("recipe", document.getElementById("TemplateRecipeCard"));
     templates.addTemplate("categoryHeader", document.getElementById("TemplateCategoryTitle"));
     templates.addTemplate("categoryList", document.getElementById("TemplateCategoryList"));
 
     //setup the main controllers
-    var ingredients = new mix.ui.Ingredients(document.querySelector(".ingredients"), templates, "ingredient");
-    var recipes = new mix.ui.Recipes(document.querySelector(".recipes"), templates, "recipe", "categoryHeader", "categoryList");
-    var settings = new mix.ui.Settings(document.querySelector(".settings"));
     var localStore = new mix.lib.LocalStore();
+    var ingredients = new mix.ui.Ingredients(
+                document.querySelector(".ingredients"),
+                templates,
+                "ingredientList",
+                localStore.getStoredStatuses());
 
-    ingredients.loadData();
-    localStore.loadFromStorage(ingredients);
+    var recipes = new mix.ui.Recipes(document.querySelector(".recipes"),
+                                     templates,
+                                     "recipe",
+                                     "categoryHeader",
+                                     "categoryList");
+
+    var settings = new mix.ui.Settings(document.querySelector(".settings"));
+
     recipes.changeIngredient(ingredients, settings);
 
     //setup listeners
-    ingredients.addEventListener("lastChange", function(e) {
+    ingredients.addIngredientChangeListener(function(nm, st) {
+        localStore.writeToStorage(nm, st);
         recipes.changeIngredient(ingredients, settings);
-        localStore.writeToStorage(ingredients, e.newValue);
     });
 
-    ingredients.addEventListener("clear", function(e) {
+    ingredients.addClearListener(function() {
         localStore.clearIngredients();
         recipes.changeIngredient(ingredients, settings);
     });
-
+    
     settings.addEventListener("sortIncomplete", function(e) {
         if (e.newValue === e.oldValue) {return;}
         recipes.changeIngredient(ingredients, settings, e.newValue);
@@ -890,12 +1019,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
     //enable browser-specific features
     var ua = navigator.userAgent.toLowerCase();
     var features = "";
-    var pd = window.devicePixelRatio ? window.devicePixelRatio : 1;
-    if (ua.indexOf("ipad") > -1 && pd < 2) { //ipad 1 & 2
-
-    } else {
-        features = "ftShadow ftAnimateIng";
-    }
+    var fd = mix.lib.featureDetection();
 
     if (features !== "") {
         document.body.className = (document.body.className + " " + features).replace(/^\s*|\s*$/g, "");
