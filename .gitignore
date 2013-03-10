@@ -1,5 +1,8 @@
 *.swp
 *.pyc
+index.html
+script.js
+script.js.map
 
 # OS generated files #
 ######################

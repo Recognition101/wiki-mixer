@@ -7,7 +7,7 @@
             document.DOMContentLoaded = null;
             document.addEventListener("DOMContentLoaded", function(e) {
                 var temp = new mix.lib.TemplateManager();
-                /*temp.addTemplate("main", document.getElementById("hook"));
+                temp.addTemplate("main", document.getElementById("hook"));
                 var dom = temp.generateDom("main", {
                     name: "five",
                     data: {inner: 4}
@@ -21,7 +21,7 @@
                 window.setTimeout(function() {temp.populateTemplate("main", dom, {
                     name: "five",
                     data: {inner: {title: 6}, outer: "hi"}
-                    });}, 3000);*/
+                    });}, 3000);
 
                 temp.addTemplate("loop", document.getElementById("loopExample"));
                 var domLoop = temp.generateDom("loop", {context: [{name: "one", value: 1}, {name: "two", value: 2}]});
@@ -33,9 +33,9 @@
                     temp.populateTemplate("loop", domLoop, {context: [{name: "one", value: 1}, {name: "three", value: 3}]});
                 }, 6000);
 
-                /*temp.addTemplate("loop2", document.getElementById("loopExample2"));
+                temp.addTemplate("loop2", document.getElementById("loopExample2"));
                 var domLoop2 = temp.generateDom("loop2", {context: ["hello", "world", "and", "stuff"]});
-                document.getElementById("insertpoint4").appendChild(domLoop2);*/
+                document.getElementById("insertpoint4").appendChild(domLoop2);
             });
         </script>
     </head>

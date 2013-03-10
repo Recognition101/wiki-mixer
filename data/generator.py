@@ -352,9 +352,9 @@ for drink in data:
             }
 
 f = open(optiDataFile, 'w')
-f.write("mix.data.drinks=" + json.dumps(optiData) + ";")
+f.write("var mixDataDrinks=" + json.dumps(optiData) + ";")
 f.close()
 
 f = open(ingDataFile, 'w')
-f.write("mix.data.ingredients=" + json.dumps(ingredients))
+f.write("var mixDataIng=" + json.dumps(ingredients))
 f.close()
