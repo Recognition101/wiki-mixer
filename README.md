@@ -2,7 +2,7 @@
 
 This site displays cocktails scraped from Wikipedia. View it here:
 
-[http://recognition101.github.io/wiki-mixer/](http://recognition101.github.io/wiki-mixer/)
+[https://recognition101.github.io/wiki-mixer/](https://recognition101.github.io/wiki-mixer/)
 
 ## Features
 
