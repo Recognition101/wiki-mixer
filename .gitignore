@@ -1,16 +1,24 @@
-*.swp
-*.pyc
-index.html
-script.js
-script.js.map
+# Language specific files
+.npm
+npm-debug.log
+node_modules
+.sass-cache
 
-# OS generated files #
-######################
+# Editor specific project files
+.tern-project
+*.swp
+*.swo
+.idea
+
+# Build process files
+dist
+coverage
+tags
+tmp
+.tmp
+*.built.*
+data/cache.json
+
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-ehthumbs.db
-Thumbs.db
+

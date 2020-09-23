@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Dispatcher Test (All Features)</title>
+        <script type="module">
+            import { startDispatch } from './dispatcher.js';
+
+            const anchor = document.getElementById('anchor') || document.body;
+
+            const rootData = {
+                b1: 0,
+                b2: 0,
+                b3: 0,
+                features: [
+                    'Click B1 to increment B1',
+                    'Click anywhere to increment B2',
+                    'B3 counts B3 focuses (no update!)',
+                    'Every update, console logged'
+                ]
+            };
+
+            window.rootData = rootData;
+
+            startDispatch(anchor, rootData, (dispatcher, data) => {
+                const h = dispatcher.h;
+
+                return h('div', {
+                    className: 'foobar',
+                    onRootUpdate: ev => {
+                        console.log('root update, target = ' + ev.target);
+                    }
+                }, [
+                    h('button',
+                        { onClick: ev => { data.b1 += 1; } },
+                        ['B1 = ' + data.b1]),
+                    h('button',
+                        { onRootClick: ev => { data.b2 += 1; } },
+                        ['B2 = ' + data.b2]),
+                    h('button', {
+                        onFocus: ev => {
+                            data.b3 += 1;
+                            return false;
+                        }
+                    }, ['B3 = ' + data.b3]),
+                    h('div', {}, [
+                        'Features:',
+                        h('ul', { id: 'features' }, data.features.map(
+                            (text, i) => h('li',
+                                { key: data.features.length - i },
+                                [ text ])
+                        )),
+                        h('button', {
+                            onClick: () => {
+                                data.features.unshift('New Data!');
+                                const oldFeature = document
+                                    .getElementById('features')
+                                    .children[0];
+
+                                window.setTimeout(() => {
+                                    const newFeature = document
+                                        .getElementById('features')
+                                        .children[1];
+                                    console.log(oldFeature === newFeature
+                                        ? 'PASS: `key` works!'
+                                        : 'FAIL: `key` broken!');
+                                }, 50);
+                            }
+                        }, [
+                            'Click this to test `key` support ' +
+                            '(check console.log for confirmation)'
+                        ])
+                    ]),
+                ]);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="anchor">
+        </div>
+    </body>
+</html>

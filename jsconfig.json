@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "allowJs": true,
+        "checkJs": true,
+        "strict": true,
+        "module": "esnext",
+        "jsx": "preserve",
+        "noEmit": true,
+        "maxNodeModuleJsDepth": 10,
+        "lib": ["ESNext", "DOM"]
+    },
+    "include": [ ],
+    "files": [
+        "./data/download.js",
+        "./data/generateTypes.js",
+        "./src/main.js"
+    ]
+}

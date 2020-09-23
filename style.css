@@ -1,0 +1,440 @@
+/* ---- MAIN COMPONENT STYLES ----- */
+html {
+    font-size: 18px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Oxygen-Sans,
+        Ubuntu,
+        Cantarell,
+        "Helvetica Neue",
+        sans-serif;
+    color: var(--color-gray0);
+    background-color: var(--color-gray4);
+
+    --color-white: rgb(242, 242, 247);
+    --color-black: rgb(50, 50, 55);
+    --color-blue: rgb(0, 122, 255);
+    --color-green: rgb(52, 199, 89);
+    --color-indigo: rgb(88, 86, 214);
+    --color-orange: rgb(255, 149, 0);
+    --color-pink: rgb(255, 45, 85);
+    --color-purple: rgb(175, 82, 222);
+    --color-red: rgb(255, 59, 48);
+    --color-teal: rgb(90, 200, 250);
+    --color-yellow: rgb(255, 204, 0);
+    --color-gray0: rgb(50, 50, 55);
+    --color-gray: rgb(142, 142, 147);
+    --color-gray2: rgb(174, 174, 178);
+    --color-gray3: rgb(199, 199, 204);
+    --color-gray4: rgb(209, 209, 214);
+    --color-gray5: rgb(229, 229, 234);
+    --color-gray6: rgb(242, 242, 247);
+    --color-gray6-blur: rgb(242, 242, 247, 0.7);
+    --color-shadow: rgba(50, 50, 55, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        --color-blue: rgb(10, 132, 255);
+        --color-green: rgb(48, 209, 88);
+        --color-indigo: rgb(94, 92, 230);
+        --color-orange: rgb(255, 159, 10);
+        --color-pink: rgb(255, 55, 95);
+        --color-purple: rgb(191, 90, 242);
+        --color-red: rgb(255, 69, 58);
+        --color-teal: rgb(100, 210, 255);
+        --color-yellow: rgb(255, 214, 10);
+        --color-gray0: rgb(200, 200, 205);
+        --color-gray: rgb(142, 142, 147);
+        --color-gray2: rgb(99, 99, 102);
+        --color-gray3: rgb(72, 72, 74);
+        --color-gray4: rgb(58, 58, 60);
+        --color-gray5: rgb(44, 44, 46);
+        --color-gray6: rgb(28, 28, 30);
+        --color-gray6-blur: rgb(28, 28, 30, 0.7);
+        --color-shadow: rgba(200, 200, 205, 0.3);
+    }
+}
+
+a {
+    text-decoration: none;
+    color: var(--color-blue);
+}
+
+/* ---- SEGMENTED CONTROL COMPONENT STYLES ---- */
+
+.segmented {
+    display: inline-block;
+    position: relative;
+    background-color: var(--color-gray6-blur);
+    border-radius: 1rem;
+    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(30px);
+}
+
+.segmented-shade {
+    position: absolute;
+    margin: 0.3rem 0;
+    height: calc(100% - 0.6rem);
+    background-color: var(--color-gray);
+    border-radius: 0.9rem;
+    transform: translateX(0);
+    width: 100%;
+}
+
+.segmented.is-setup .segmented-shade {
+    transition: transform 0.4s ease, width 0.4s ease;
+}
+
+.segmented button {
+    display: inline-block;
+    margin: 0.75rem 0.3rem;
+    padding: 0 1rem;
+    border-width: 0;
+    position: relative;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-gray0);
+    background-color: transparent;
+    cursor: pointer;
+    transition: color 0.4s ease-in;
+}
+
+.segmented button.selected {
+    color: var(--color-gray6);
+}
+
+.viewport-small .segmented button {
+    margin: 0.6rem 0.24rem;
+    padding: 0 0.8rem;
+    font-size: 0.8rem;
+}
+
+/* ---- ROOT COMPONENT STYLES ---- */
+
+.loading {
+    min-height: 100vh;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-text::before {
+    content: "\1F943";
+    padding-right: 0.4rem;
+    animation: 1s infinite alternate load;
+}
+
+.loading-text {
+    font-size: 1.5rem;
+}
+
+@keyframes load {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modes {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    z-index: 10;
+}
+
+.modes > .segmented {
+    top: calc(-3.5rem - env(safe-area-inset-bottom));
+}
+
+.panel {
+    display: none;
+    padding: 0 0 calc(3.8rem + env(safe-area-inset-bottom)) 0;
+}
+
+.panel.shown {
+    display: block;
+}
+
+.modes > .segmented > button:nth-of-type(3) {
+    width: 8rem;
+}
+
+.viewport-small .modes > .segmented > button:nth-of-type(3) {
+    width: 6.4rem;
+}
+
+/* ---- INGREDIENTS COMPONENT STYLES ----- */
+.shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    grid-auto-flow: row dense;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-color: var(--color-gray6);
+}
+
+.shelf input[type="checkbox"] {
+    position: absolute;
+    left: -1rem;
+}
+
+.shelf label {
+    display: block;
+    margin: 0.3rem;
+    padding: 0.5rem 1rem;
+    font-size: 1.4rem;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-gray5);
+    border-radius: 1rem;
+    cursor: pointer;
+    color: var(--color-gray);
+    transform: scale(0.9, 0.9);
+    transition: color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.shelf-item label:focus-within {
+    box-shadow: 0 0 0 2px var(--color-blue);
+}
+
+.shelf-item.is-had label {
+    box-shadow: 0 0 0 2px var(--color-blue);
+    color: var(--color-gray0);
+    transform: scale(1, 1);
+}
+
+/* ---- DRINKS COMPONENT STYLES ----- */
+
+.drinks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    grid-auto-flow: row dense;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.drinks > li {
+    display: flex;
+    flex-flow: column;
+    border: 0.5px solid var(--color-gray);
+    background-color: var(--color-gray4);
+    overflow: hidden;
+}
+
+.drink.drink-rejected {
+    display: none;
+}
+
+.drink .drink-image,
+.drink .drink-image-empty {
+    display: block;
+    position: relative;
+    height: 10rem;
+    text-align: center;
+    overflow: hidden;
+}
+
+.drink .drink-image img {
+    position: relative;
+    min-height: 100%;
+    max-height: 10rem;
+}
+
+.drinks .drink-image-empty {
+    line-height: 10rem;
+    font-size: 4rem;
+    background: linear-gradient(var(--color-gray2), var(--color-gray));
+}
+
+.drinks h3 {
+    margin: 0.5rem 1.5rem;
+    font-size: 1.6rem;
+    text-align: center;
+}
+
+.drinks .metadata-small {
+    height: 2.3rem;
+    line-height: 2.3rem;
+    text-align: center;
+}
+
+.drinks .metadata-small > * {
+    display: inline;
+    margin: 0.2rem 1rem;
+    padding: 0.2rem 0.6rem;
+    vertical-align: middle;
+}
+
+.drinks .metadata-small > .iba {
+    border-radius: 0.6rem;
+    background-color: var(--color-yellow);
+    color: var(--color-black);
+}
+
+.drinks .metadata-small .vessel {
+    max-height: 1.5rem;
+    cursor: pointer;
+    color: var(--color-blue);
+}
+
+.drinks .ingredients {
+    margin: 0;
+    padding: 0;
+    list-style: disc;
+}
+
+.drinks .ingredients > li {
+    margin: 0.25rem 0.5rem 0.25rem 2rem;
+}
+
+.drinks .ingredients .missing {
+    color: var(--color-red);
+}
+
+.drinks .preparation,
+.drinks .metadata-large {
+    margin: 0.5rem 0.75rem 0.5rem 0.75rem;
+}
+
+.drinks .metadata-large {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+}
+
+.drinks .metadata-large > dt {
+    margin: 0.25rem 0.25rem 0.25rem 0;
+    font-weight: bold;
+}
+
+.drinks .metadata-large > dd {
+    margin: 0.25rem 0;
+    padding: 0;
+}
+
+/* ---- FILTER COMPONENT STYLES ----- */
+
+.filter-controls {
+    padding: 1rem 0;
+    text-align: center;
+    background-color: var(--color-gray6);
+}
+
+.filter-controls button {
+    display: block;
+    margin: 2rem auto;
+    padding: 0.4rem 1rem;
+    font-size: 1.4rem;
+    background-color: var(--color-gray);
+    border-radius: 0.9rem;
+    border-width: 0;
+    color: var(--color-gray6);
+    cursor: pointer;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    grid-auto-flow: row dense;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.filters .filter-grid > li {
+    border: 0.5px solid var(--color-gray);
+}
+
+.filter-block {
+    padding: 0.5rem;
+    margin: 0;
+    background-color: var(--color-gray4);
+    font-size: 1.1rem;
+}
+
+.filter-block select {
+    font-size: 1.1rem;
+}
+
+.filter-title {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1rem 0;
+}
+
+.filter-title h3 {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    font-size: 1.6rem;
+}
+
+.filter-title > input[type=text] {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border-width: 0;
+    border-bottom: 0.1rem solid var(--color-gray0);
+    border-radius: 0;
+    margin: 0 0.5rem 0 0.5rem;
+    font-size: 1.6rem;
+    background-color: transparent;
+}
+
+.filter-delete {
+    height: 1.6rem;
+    margin: 0;
+    padding: 0 0.5rem 0 0.4rem;
+    font-size: 1.2rem;
+    background-color: var(--color-gray);
+    border-radius: 0.9rem;
+    border-width: 0;
+    color: var(--color-gray6);
+    cursor: pointer;
+}
+
+.filter-enabled {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1rem 0;
+    cursor: pointer;
+}
+
+.filter-enabled > input {
+    margin: 0 0.5rem;
+    font-size: 1.6rem;
+}
+
+.filter-property {
+    display: flex;
+}
+
+.filter-property > select {
+    flex: 1;
+    min-width: 0;
+    max-width: 7.2rem;
+}
+
+.filter-property > select:last-child {
+    max-width: none;
+}
+
+.filter-block > ul {
+    padding: 0.5rem 0 0.5rem 2rem;
+    margin: 0;
+    list-style: disc;
+}
