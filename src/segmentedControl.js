@@ -72,24 +72,25 @@ export const segmentedControl = (dispatcher, choice) => {
     const shade = h('div', {
         className: 'segmented-shade',
         style: { transform: `translateX(${x}px)`, width: `${width}px` }
-    }, []);
+    });
 
     // Create a segmented button for each option
     const buttons = choice.options.map((option, i) =>
-        h('button', {
-            className:
-                'segmented-' + option.value
-                + (choice.value === option.value ? ' selected' : ''),
-            onClick: () => {
-                choice.index = i;
-                choice.value = option.value;
-            }
-        }, [
+        h('button', [
+            {
+                className:
+                    'segmented-' + option.value
+                    + (choice.value === option.value ? ' selected' : ''),
+                onClick: () => {
+                    choice.index = i;
+                    choice.value = option.value;
+                }
+            },
             option.text
         ])
     );
 
     // Return the Virtual Node
     const className = 'segmented' + (choice.isSetup ? ' is-setup' : '');
-    return h('div', { className, onRootUpdate }, [ shade, ...buttons ]);
+    return h('div', [{ className, onRootUpdate }, shade, ...buttons ]);
 };

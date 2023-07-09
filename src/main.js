@@ -15,6 +15,8 @@ import { preUpdate as preUpdateFilter, filterDrinks, uiFilters }
  */
 
 /**
+ * @typedef {import("../types").DrinkManifestUi} DrinkManifestUi
+ *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
  * @typedef {import('./filter.js').Filter} Filter
@@ -208,14 +210,19 @@ startDispatch(document.body, rootData, (dispatcher, data) => {
     ];
 
     const panels = panelChildren.map((panel, i) =>
-        h('div', {
-            className: 'panel panel-' + options[i].value
-                + (i === index ? ' shown' : '')
-        }, [ panel ])
+        h('div', [
+            {
+                className: 'panel panel-' + options[i].value
+                    + (i === index ? ' shown' : '')
+            },
+            panel
+        ])
     );
 
-    return h('div', { className: 'root', onRootResize: setupViewport }, [
-        h('nav', { className: 'modes' }, [
+    return h('div', [
+        { className: 'root', onRootResize: setupViewport },
+        h('nav', [
+            { className: 'modes' },
             segmentedControl(dispatcher, data.tabs.mode),
         ]),
         ...panels

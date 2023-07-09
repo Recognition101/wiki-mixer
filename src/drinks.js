@@ -1,5 +1,8 @@
 
 /**
+ * @typedef {import("../types").DrinkManifestUi} DrinkManifestUi
+ * @typedef {import("../types").DrinkUi} DrinkUi
+ *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
  * @typedef {import('./shelf.js').IngredientManifest} IngredientManifest
@@ -9,7 +12,7 @@ const imagePrefix = './data/images/';
 
 /**
  * Gets the number of owned ingredients in a given drink.
- * @param {Drink} drink the drink to analyze
+ * @param {import("../types").Drink} drink the drink to analyze
  * @param {IngredientManifest} have the map of all owned ingredient hashes
  * @return {number} the number of ingredients owned in `drink`
  */
@@ -56,51 +59,67 @@ const uiDrink = (dispatcher, drinkManifest, drink, have) => {
     const className = 'drink'
         + (drink.isRejected ? ' drink-rejected' : '');
 
-    return h('li', { className, key }, [
+    return h('li', [
+        { className, key },
         drink.imageUrl
-            ? h('div', { className: 'drink-image', style: { background } }, [
-                h('img', { src: imagePrefix + drink.imageUrl }, [])
+            ? h('div', [
+                { className: 'drink-image', style: { background } },
+                h('img', { src: imagePrefix + drink.imageUrl })
             ])
-            : h('div', { className: 'drink-image-empty' }, [ emoji ]),
+            : h('div', [{ className: 'drink-image-empty' }, emoji ]),
 
-        h('h3', { }, [ drink.name ]),
+        h('h3', [drink.name]),
 
-        h('div', { className: 'metadata-small' }, [
-            h('a', { href: drink.url }, [ '(Link)' ]),
+        h('div', [
+            { className: 'metadata-small' },
+            h('a', [{ href: drink.url }, '(Link)']),
             drink.isIba
-                ?  h('span', { className: 'iba' }, [ 'IBA' ])
+                ?  h('span', [{ className: 'iba' }, 'IBA'])
                 : null,
-            drink.vesselUrl || drink.vessel ?
-                h(drink.vesselUrl ? 'img' : 'div', {
+            drink.vesselUrl
+                ? h('img', {
                     className: 'vessel',
-                    src: drink.vesselUrl
-                        ? imagePrefix + drink.vesselUrl
-                        : undefined,
+                    src: imagePrefix + drink.vesselUrl,
                     onClick: () => {
                         alert('Vessel: ' + (drink.vessel || ''));
                         return false;
                     }
-                }, drink.vessel ? [ '(Vessel)' ] : []) : null,
-
+                })
+                : null,
+            !drink.vesselUrl && drink.vessel
+                ? h('div', [
+                    {
+                        className: 'vessel',
+                        onClick: () => {
+                            alert('Vessel: ' + (drink.vessel || ''));
+                            return false;
+                        }
+                    },
+                    '(Vessel)'
+                ])
+                : null
         ]),
-        h('ul', { className: 'ingredients' }, drink.ingredients.map(
-            (text, i) => h('li', {
-                className: (drink.ingredientHashes[i] || [])
-                    .some(hash => have[hash])
-                    ? 'present'
-                    : 'missing'
-            }, [ text ])
-        )),
-        h('p', { className: 'preparation' }, [ drink.preparation ]),
-        h('dl', { className: 'metadata-large' }, [
-            drink.served ? h('dt', { }, [ 'Served:' ]) : null,
-            drink.served ? h('dd', { }, [ drink.served ]) : null,
+        h('ul', [
+            { className: 'ingredients' },
+            ...drink.ingredients.map((text, i) => h('li', [
+                {
+                    className: (drink.ingredientHashes[i] || [])
+                        .some(hash => have[hash]) ? 'present' : 'missing'
+                },
+                text
+            ]))
+        ]),
+        h('p', [{ className: 'preparation' }, drink.preparation]),
+        h('dl', [
+            { className: 'metadata-large' },
+            drink.served ? h('dt', ['Served:']) : null,
+            drink.served ? h('dd', [drink.served]) : null,
 
-            drink.garnish ? h('dt', { }, [ 'Garnish:' ]) : null,
-            drink.garnish ? h('dd', { }, [ drink.garnish ]) : null,
+            drink.garnish ? h('dt', ['Garnish:']) : null,
+            drink.garnish ? h('dd', [drink.garnish]) : null,
 
-            drink.notes ? h('dt', { }, [ 'Notes:' ]) : null,
-            drink.notes ? h('dd', { }, [ drink.notes ]) : null
+            drink.notes ? h('dt', ['Notes:']) : null,
+            drink.notes ? h('dd', [drink.notes]) : null
         ])
     ]);
 };
@@ -127,8 +146,11 @@ export const uiDrinks = (dispatcher, drinkManifest, have) => {
             || (b.name < a.name ? 1 : -1);
     });
 
-    return h('ul', { className: 'drinks' }, drinkManifest.drinks.map(drink =>
-        uiDrink(dispatcher, drinkManifest, drink, have)
-    ));
+    return h('ul', [
+        { className: 'drinks' },
+        ...drinkManifest.drinks.map(drink =>
+            uiDrink(dispatcher, drinkManifest, drink, have)
+        )
+    ]);
 };
 

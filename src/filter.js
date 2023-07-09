@@ -1,5 +1,7 @@
 
 /**
+ * @typedef {import("../types").Drink} Drink
+ *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
  * @typedef {import('./main.js').FilterData} FilterData
@@ -200,50 +202,62 @@ const uiFilterSelect = (dispatcher, property, options) => {
 
     const optionNodes = (
         type === 'ingredient' ? ingredients.map(ingredient =>
-            h('option', {
-                value: ingredient,
-                selected: ingredient === value || undefined
-            }, [ ingredient ])) :
+            h('option', [
+                {
+                    value: ingredient,
+                    selected: ingredient === value
+                },
+                ingredient
+            ])) :
 
         type === 'vessel' ? vessels.map(vessel =>
-            h('option', {
-                value: vessel,
-                selected: vessel === value || undefined
-            }, [ vessel ]) ) :
+            h('option', [
+                { value: vessel, selected: vessel === value },
+                vessel
+            ]) ) :
 
         type === 'filter' ? filters.map(filter =>
-            h('option', {
-                value: filter.id.toString(),
-                selected: filter.id.toString() === value || undefined
-            }, [ `#${filter.id} - ${filter.name}` ])) :
+            h('option', [
+                {
+                    value: filter.id.toString(),
+                    selected: filter.id.toString() === value
+                },
+                `#${filter.id} - ${filter.name}`
+            ])) :
 
         []);
 
-    optionNodes.unshift(h('option', {
-        value: '',
-        selected: value === '' || undefined
-    }, [ 'None' ]));
+    optionNodes.unshift(h('option', [
+        { value: '', selected: value === '' },
+        'None'
+    ]));
 
-    return h('span', { className: 'filter-property' }, [
-        h('select', {
-            onChange: ev => {
-                property.type = getFilterType(ev.target.value);
-                property.value = '';
-            }
-        }, filterTypes.map((typeOption) =>
-            filterTypeNames[typeOption]
-                ? h('option', {
-                    value: typeOption,
-                    selected: typeOption === type || undefined
-                }, [
-                    filterTypeNames[typeOption]
-                ])
-                : undefined
-        )),
+    return h('span', [
+        { className: 'filter-property' },
+        h('select', [
+            {
+                onChange: (_, target) => {
+                    property.type = getFilterType(target.value);
+                    property.value = '';
+                }
+            },
+            ...filterTypes.map((typeOption) =>
+                filterTypeNames[typeOption]
+                    ? h('option', [
+                        {
+                            value: typeOption,
+                            selected: typeOption === type
+                        },
+                        filterTypeNames[typeOption]
+                    ])
+                    : undefined
+            )
+        ]),
 
-        h('select',
-            { onChange: ev => { property.value = ev.target.value; } },
-            optionNodes)
+        h('select', [
+            { onChange: (_, target) => { property.value = target.value; } },
+            ...optionNodes
+        ])
     ]);
 };
 
@@ -260,52 +274,63 @@ const uiFilter = (dispatcher, filter, filters, options) => {
     const isAll = filter.isAll || undefined;
     const isAny = !filter.isAll || undefined;
 
-    return h('div', { className: 'filter-block' }, [
-        h('div', { className: 'filter-title' }, [
-            h('h3', { }, [ '#' + filter.id + ' - ' ]),
+    return h('div', [
+        { className: 'filter-block' },
+        h('div', [
+            { className: 'filter-title' },
+            h('h3', '#' + filter.id + ' - '),
             h('input', {
                 type: 'text',
-                placeholder: 'Type Name Here',
+                placeholder: 'Filter Name',
                 maxLength: 30,
                 value: filter.name,
                 onInput: ev => {
                     const target = /** @type {HTMLInputElement} */(ev.target);
                     filter.name = target.value || 'Default Name';
                 }
-            }, [ ]),
-            h('button', {
-                className: 'filter-delete',
-                onClick: () => {
-                    const question = 'Are you sure you want to delete '
-                        + `Filter #${filter.id} - ${filter.name}`;
-                    if (window.confirm(question)) {
-                        filterInPlace(filters, other => other.id !== filter.id);
+            }),
+            h('button', [
+                {
+                    className: 'filter-delete',
+                    onClick: () => {
+                        const question = 'Are you sure you want to delete '
+                            + `Filter #${filter.id} - ${filter.name}`;
+                        if (window.confirm(question)) {
+                            filterInPlace(filters, x => x.id !== filter.id);
+                        }
                     }
-                }
-            }, [ '\u232b' ]) // u2326 for right arrow
+                },
+                '\u232b' // u2326 for right arrow
+            ])
         ]),
-        h('label', { className: 'filter-enabled' }, [
+        h('label', [
+            { className: 'filter-enabled' },
             'Enabled:',
             h('input', {
                 type: 'checkbox',
-                checked: filter.isEnabled || undefined,
-                onChange: ev => { filter.isEnabled = !!ev.target.checked; }
-            }, [])
+                checked: filter.isEnabled,
+                onChange: (_, target) => {
+                    filter.isEnabled = !!target.checked;
+                }
+            })
         ]),
-        h('div', { className: 'filter-match' }, [
+        h('div', [
+            { className: 'filter-match' },
             'Match ',
-            h('select', {
-                onChange: ev => { filter.isAll = ev.target.value === 'all'; }
-            }, [
-                h('option', { value: 'all', selected: isAll }, ['All']),
-                h('option', { value: 'any', selected: isAny }, ['Any'])
+            h('select', [
+                {
+                    onChange: (_, target) => {
+                        filter.isAll = target.value === 'all';
+                    }
+                },
+                h('option', [{ value: 'all', selected: isAll }, 'All']),
+                h('option', [{ value: 'any', selected: isAny }, 'Any'])
             ]),
             ' of These:',
         ]),
-        h('ul', { }, filter.properties.map(property =>
-            h('li', {
-                key: property.id.toString()
-            }, [
+        h('ul', filter.properties.map(property =>
+            h('li', [
+                { key: property.id.toString() },
                 uiFilterSelect(dispatcher, property, options)
             ]))
         )
@@ -334,24 +359,25 @@ export const uiFilters = (dispatcher, filterData, ingredients, vessels) => {
 
     const addFilterBound = addFilter.bind(this, filterData);
 
-    const filterControls = h('li',
+    const filterControls = h('li', [
         {
             className: 'filter-controls',
             key: '--controls--'
-        }, [
-            h('button', { onClick: addFilterBound }, [ '+ New Filter' ]),
-            h('button', { onClick: clearFilters }, [ '\u2326 Filters' ])
-        ]);
+        },
+        h('button', [{ onClick: addFilterBound }, '+ New Filter']),
+        h('button', [{ onClick: clearFilters }, '\u2326 Filters'])
+    ]);
 
-    const filterListItems = filters.map(filter => h(
-        'li',
-        { key: filter.id },
-        [ uiFilter(dispatcher, filter, filters, options) ]));
+    const filterListItems = filters.map(filter => h('li', [
+        { key: filter.id.toString() },
+        uiFilter(dispatcher, filter, filters, options)
+    ]));
 
     filterListItems.push(filterControls);
 
-    return h('div', { className: 'filters' }, [
-        h('ul', { className: 'filter-grid' }, filterListItems)
+    return h('div', [
+        { className: 'filters' },
+        h('ul', [{ className: 'filter-grid' }, ...filterListItems])
     ]);
 };
 

@@ -17,7 +17,6 @@ const evKeyRootPrefix = 'ev-root-';
  * @typedef {import("../lib/snabbdom/modules/props").Props} VNodeProps
  * @typedef {import("../lib/snabbdom/jsx").JsxVNodeChild} JsxVNodeChild
  * @typedef {import("../lib/snabbdom/jsx").JsxVNodeChildren} JsxVNodeChildren
- * @typedef {keyof JSX.IntrinsicElements} TagUnion 
  *
  * @typedef {Object} SyntheticEvent A simplified `Event`-like object.
  * @prop {boolean} [stop] if true, event delegation will stop
@@ -26,12 +25,7 @@ const evKeyRootPrefix = 'ev-root-';
  * @prop {EventTarget|null} target the element this event is targeting
  * @prop {Event} [nativeEvent] the actual event triggering this dispatch
  *
- * @typedef {Object} Dispatcher a controller managing a dispatch-update loop
- * @prop {(ev: Event)=>void} dispatch starts the dispatch-update process
- * @prop {()=>void} update updates the view and patches the DOM with snabbdom
- * @prop {<T extends TagUnion>(tag: T,
- *      attrs: JSX.IntrinsicElements[T],
- *      children: JsxVNodeChild[]) => VNode} h the virtual hyperscript function
+ * @typedef {ReturnType<startDispatch>} Dispatcher
  */
 
 /**
@@ -65,7 +59,8 @@ const toAttributeValue = x => typeof x === 'string' || typeof x === 'number'
  * @param {string} n the JSX property name (ex: "id" or "checked")
  * @return {boolean} true if we should set the JSX property as a DOM attribute
  */
-const isAttribute = n => n === 'for' || n === 'role' || n === 'novalidate';
+const isAttribute = n =>
+    n === 'for' || n === 'role' || n === 'novalidate' || n === 'disabled';
 
 /**
  * Determine if this JSX property should be set as a DOM property and attribute.
@@ -89,14 +84,13 @@ const isCaptured = t => t === 'scroll' || t === 'error' || t === 'load'
  * @param {Element} anchor the DOM element the snabbdom tree is anchored to
  * @param {V} data the view data to be passed into the view each update
  * @param {(main: Dispatcher, data: V) => VNode} view the snabbdom tree creator 
- * @return {Dispatcher} the created delegate
  */
 export const startDispatch = (anchor, data, view) => {
     const States = { DISPATCH: 0, UPDATE: 1, SLEEP: 2 };
     const ListenTo = { NONE: 0, ANCHOR: 1, ROOT: 2 };
 
     let state = States.SLEEP;
-    const listenTo = /** @type {{[eventType: string]: number}} */({});
+    const listenTo = /** @type {Object<string, number>} */({});
     let rootTargets = /** @type {Object<string, Element[]>} */({});
     let oldVirtualNodes = /** @type {VNode|null} */(null);
     let doUpdate = true;
@@ -133,7 +127,7 @@ export const startDispatch = (anchor, data, view) => {
             ev.target = target;
             const handlers = /** @type {any} */(target)[evKey] || [];
             for(let i = 0; handlers[i]; i += 1) {
-                const result = handlers[i](ev);
+                const result = handlers[i](ev, target);
                 doUpdate = doUpdate
                     || (isInternal ? result === true : result !== false);
             }
@@ -144,7 +138,7 @@ export const startDispatch = (anchor, data, view) => {
             const handlers = /** @type {any} */(rootTarget)[evRootKey] || [];
             for(let i = 0; handlers[i]; i += 1) {
                 ev.target = rootTarget;
-                const result = handlers[i](ev);
+                const result = handlers[i](ev, rootTarget);
                 doUpdate = doUpdate
                     || (isInternal ? result === true : result !== false);
             }
@@ -176,35 +170,34 @@ export const startDispatch = (anchor, data, view) => {
     };
 
     /**
-     * The virtual hyperscript function.
-     * @template {TagUnion} T a union of all tag names (ex: "div" | "a" | ...)
+     * Populates a Virtual Node Data object from a property/attribute map.
+     * @template {keyof HTMLElementTagNameMap} T a union of all tag names
      * @param {T} tag the tag name to create (ex: "div")
-     * @param {JSX.IntrinsicElements[T]} attributesAndProperties set on DOM
-     * @param {JsxVNodeChild[]} children any children to attach
+     * @param {import("../types").HtmlAttributeSet<T>} map a map of property
+     *  and attribute keys to their values.
+     * @param {string[]} rootEvents event types to listen for on the root
+     * @param {VNodeData} data the virtual node data to populate
      */
-    const h = (tag, attributesAndProperties, children) => {
-        const attrs = /** @type {VNodeAttrs} */({});
-        const props = /** @type {VNodeProps} */({});
-        const data = /** @type {VNodeData} */({ attrs, props });
-        const rootEvents = /** @type {string[]} */([]);
+    const setAttributes = (tag, map, rootEvents, data) => {
+        data.attrs = data.attrs ?? { };
+        data.props = data.props ?? { };
 
-        let doFocus = false;
-        for(const key in attributesAndProperties) {
-            const value = attributesAndProperties[key];
+        for(const [key, value] of Object.entries(map)) {
             const lowerKey = key.toLowerCase();
+            const hasValue = value !== undefined && value !== null;
 
-            if (lowerKey === 'key') {
-                data.key = attributesAndProperties.key || '';
-
-            } else if (lowerKey === 'style') {
-                data.style = /** @type {any} */(value);
-
+            if (lowerKey === 'key' && map.key) {
+                data.key = map.key;
+            } else if (lowerKey === 'class' && map.class) {
+                data.class = map.class;
+            } else if (lowerKey === 'style' && map.style) {
+                data.style = map.style;
             } else if (lowerKey.startsWith('on')) {
-                const isRoot = lowerKey.substr(2, 4) === 'root';
-                const eventType = lowerKey.substr(isRoot ? 6 : 2);
+                const isRoot = lowerKey.substring(2, 6) === 'root';
+                const eventType = lowerKey.substring(isRoot ? 6 : 2);
                 const prefix = isRoot ? evKeyRootPrefix : evKeyPrefix;
 
-                props[prefix + eventType] = boxArray(value);
+                data.props[prefix + eventType] = boxArray(value);
 
                 if (!isRoot && (listenTo[eventType] || 0) < 1) {
                     const capture = isCaptured(eventType);
@@ -221,14 +214,42 @@ export const startDispatch = (anchor, data, view) => {
                     rootEvents.push(eventType);
                 }
 
-            } else if (value !== undefined && value !== null) {
-                doFocus = doFocus || (key === 'focused' && Boolean(value));
-                const prefix = key.substr(0, 4);
+            } else if (key !== "focus" && hasValue) {
+                const prefix = key.substring(0, 4);
                 const isPrefixed = prefix === 'data' || prefix === 'aria';
                 const isAttr = isPrefixed || isAttribute(key);
                 const isBoth = isAttributeAndProperty(key);
-                if (isBoth || isAttr) { attrs[key] = toAttributeValue(value); }
-                if (isBoth || !isAttr) { props[key] = value; }
+                if (isBoth || isAttr) {
+                    data.attrs[key] = toAttributeValue(value);
+                }
+                if (isBoth || !isAttr) {
+                    data.props[key] = value;
+                }
+            }
+        }
+    };
+
+    /**
+     * The virtual hyperscript function.
+     * @template {keyof HTMLElementTagNameMap} T a union of all tag names
+     * @param {T} tag the tag name to create (ex: "div")
+     * @param {import("../types").HtmlOptions<T>} options attrs and children
+     */
+    const h = (tag, options) => {
+        const data = /** @type {VNodeData} */({ attrs: { }, props: { } });
+        const rootEvents = /** @type {string[]} */([]);
+        /** @type {(VNode|string)[]} */
+        const children = [];
+
+        let doFocus = false;
+        for(const child of boxArray(options)) {
+            const isString = typeof child === 'string';
+            const isNode = child && !isString && 'data' in child;
+            if (isString || isNode) {
+                children.push(child);
+            } else if (child) {
+                setAttributes(tag, child, rootEvents, data);
+                doFocus = doFocus || !!child.focus;
             }
         }
 

@@ -10,6 +10,9 @@ const parse5 = require('parse5');
 const { getColors } = require('./getColors.js');
 
 /**
+ * @typedef {import("../types").DrinkManifest} DrinkManifest
+ * @typedef {import("../types").Drink} Drink
+ *
  * @typedef {Object} P5Node
  * @prop {string} [nodeName]
  * @prop {string} [value]
@@ -715,8 +718,7 @@ const main = async () => {
     fs.writeFileSync(cachePath, JSON.stringify(cache, null, '  '));
     fs.writeFileSync(drinkPath, ''
         + '/* eslint-disable quotes,max-len,indent */\n'
-        + '/// <reference path="../types.d.ts" />\n'
-        + '/** @type {DrinkManifest} */\n'
+        + '/** @type {import("../types").DrinkManifest} */\n'
         + 'export const manifest = '
         + JSON.stringify(manifest, null, '  ')
         + ';');

@@ -15,18 +15,22 @@
 export const uiShelf = (dispatcher, ingredientHashes, have) => {
     const h = dispatcher.h;
 
-    return h('ul', { className: 'shelf' }, ingredientHashes.map(hash => {
-        const className = 'shelf-item ' + (have[hash] ? 'is-had' : '');
-        return h('li', { className }, [
-            h('label', { }, [
-                h('input', {
-                    type: 'checkbox',
-                    onChange: ev => {
-                        have[hash] = Boolean(ev.target && ev.target.checked);
-                    }
-                }, []),
-                hash
-            ])
-        ]);
-    }));
+    return h('ul', [
+        { className: 'shelf' },
+        ...ingredientHashes.map(hash => {
+            const className = 'shelf-item ' + (have[hash] ? 'is-had' : '');
+            return h('li', [
+                { className },
+                h('label', [
+                    h('input', {
+                        type: 'checkbox',
+                        onChange: (_, target) => {
+                            have[hash] = target.checked;
+                        }
+                    }),
+                    hash
+                ])
+            ]);
+        })
+    ]);
 };
