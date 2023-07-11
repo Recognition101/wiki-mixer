@@ -1,6 +1,6 @@
 /**
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
- * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
+ * @typedef {import('snabbdom').VNode} VNode
  *
  * @typedef {{[drinkHash: string]: boolean}} IngredientManifest
  */

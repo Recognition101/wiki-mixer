@@ -11,14 +11,14 @@ import { preUpdate as preUpdateFilter, filterDrinks, uiFilters }
 
 /**
  * @template T
- * @typedef {import("./segmentedControl.js").Chooser<T>} Chooser
+ * @typedef {import('./segmentedControl.js').Chooser<T>} Chooser
  */
 
 /**
- * @typedef {import("../types").DrinkManifestUi} DrinkManifestUi
+ * @typedef {import('../types.d.ts').DrinkManifestUi} DrinkManifestUi
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
- * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
+ * @typedef {import('snabbdom').VNode} VNode
  * @typedef {import('./filter.js').Filter} Filter
  * @typedef {import('./shelf.js').IngredientManifest} IngredientManifest
  *

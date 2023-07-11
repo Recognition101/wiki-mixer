@@ -37,9 +37,11 @@ export interface EventLike {
     type: string;
     target: EventTarget | null;
     noPropagation?: boolean;
+    timeStamp?: number;
+    nativeEvent?: Event;
 }
 
-type VNode = import("./lib/snabbdom/vnode").VNode;
+type VNode = import('snabbdom').VNode;
 
 type MaybeArray<T> = T | T[];
 
@@ -54,6 +56,7 @@ type HtmlAdditionExtras<T extends keyof HTMLElementTagNameMap> = {
     /** Special Snabbdom Properties */
     key: string;
     class: {[key: string]: boolean};
+    dataset: {[key: string]: string};
     focused: boolean;
     style: HtmlStyle;
     onRootUpdate: HtmlHandler<T>;

@@ -1,18 +1,24 @@
 {
     "name": "wiki-mixer",
     "version": "2.0.0",
+    "type": "module",
+    "scripts": {
+        "lint-types": "npx tsc -p ./",
+        "build-lib": "npm run build-lib-cp && npm run build-lib-js",
+        "build-lib-js": "npx rollup -c ./build/rollup.config.js",
+        "build-lib-cp": "cp ./build/lib-entry.js ./src/lib/lib.d.ts"
+    },
     "devDependencies": {
-        "@types/node": "14.0.1",
-        "@types/parse5": "5.0.3",
+        "@rollup/plugin-node-resolve": "15.1.0",
+        "@types/node": "20.4.1",
+        "@types/pngjs": "6.0.1",
         "jpeg-js": "0.4.4",
-        "parse5": "6.0.0",
-        "pngjs": "5.0.0",
+        "parse5": "7.1.2",
+        "pngjs": "7.0.0",
+        "rollup": "3.26.2",
         "typescript": "5.0.4"
     },
     "dependencies": {
-        "snabbdom": "1.0.1"
-    },
-    "scripts": {
-        "lint-types": "npx tsc -p ./"
+        "snabbdom": "3.5.1"
     }
 }

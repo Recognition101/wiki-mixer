@@ -1,17 +1,17 @@
 /* eslint-disable no-console */
 /// <reference path="../types.d.ts" />
 
-const fs = require('fs');
-const http = require('http');
-const https = require('https');
-const urlLib = require('url');
-const path = require('path');
-const parse5 = require('parse5');
-const { getColors } = require('./getColors.js');
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import * as urlLib from 'url';
+import * as path from 'path';
+import * as parse5 from 'parse5';
+import { getColors } from './getColors.js';
 
 /**
- * @typedef {import("../types").DrinkManifest} DrinkManifest
- * @typedef {import("../types").Drink} Drink
+ * @typedef {import('../types.d.ts').DrinkManifest} DrinkManifest
+ * @typedef {import('../types.d.ts').Drink} Drink
  *
  * @typedef {Object} P5Node
  * @prop {string} [nodeName]
@@ -718,7 +718,7 @@ const main = async () => {
     fs.writeFileSync(cachePath, JSON.stringify(cache, null, '  '));
     fs.writeFileSync(drinkPath, ''
         + '/* eslint-disable quotes,max-len,indent */\n'
-        + '/** @type {import("../types").DrinkManifest} */\n'
+        + '/** @type {import(\'../types.d.ts\').DrinkManifest} */\n'
         + 'export const manifest = '
         + JSON.stringify(manifest, null, '  ')
         + ';');

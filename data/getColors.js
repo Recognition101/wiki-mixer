@@ -1,10 +1,7 @@
-const fs = require('fs');
-//@ts-ignore
-const jpegJs = require('jpeg-js');
-//@ts-ignore
-const pngJs = require('pngjs');
-const path = require('path');
-
+import * as fs from 'fs';
+import * as path from 'path';
+import * as jpegJs from 'jpeg-js';
+import * as pngJs from 'pngjs';
 
 /**
  * Given a list of P points and C centroids (each point of size `size`), find
@@ -162,7 +159,7 @@ const hsvToRgb = (h, s, v) => {
  * @param {string} filePath the path to the input PNG or JPG file
  * @return {number[][]|null} a list of [R, G, B] tuples containing theme colors
  */
-module.exports.getColors = (filePath, debugOutput=false) => {
+export const getColors = (filePath, debugOutput=false) => {
     const isPng = /\.png$/i.test(filePath);
     const isJpg = /\.jpe?g$/i.test(filePath);
     if (!isPng && !isJpg) {
@@ -171,7 +168,6 @@ module.exports.getColors = (filePath, debugOutput=false) => {
 
     const fileData = fs.readFileSync(filePath);
 
-    /** @type {{width: number, height: number, data: number[]}} */
     const { width, height, data } = isPng
         ? pngJs.PNG.sync.read(fileData)
         : jpegJs.decode(fileData, { useTArray: true });

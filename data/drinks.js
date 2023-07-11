@@ -1,5 +1,5 @@
 /* eslint-disable quotes,max-len,indent */
-/** @type {import("../types").DrinkManifest} */
+/** @type {import('../types.d.ts').DrinkManifest} */
 export const manifest = {
   "drinks": [
     {

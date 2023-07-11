@@ -1,32 +1,39 @@
-import { jsx } from '../lib/snabbdom/jsx.js';
-import { init } from '../lib/snabbdom/init.js';
-import { classModule } from '../lib/snabbdom/modules/class.js';
-import { propsModule } from '../lib/snabbdom/modules/props.js';
-import { styleModule } from '../lib/snabbdom/modules/style.js';
-import { attributesModule } from '../lib/snabbdom/modules/attributes.js';
-
-const patch = init([ classModule, propsModule, attributesModule, styleModule ]);
-
-const evKeyPrefix = 'ev-';
-const evKeyRootPrefix = 'ev-root-';
+import {
+    snabbdomInit,
+    snabbdomAttributes,
+    snabbdomProps,
+    snabbdomClass,
+    snabbdomStyle,
+    snabbdomDataset,
+    snabbdomJsx
+} from './lib/lib.js';
 
 /**
- * @typedef {import("../lib/snabbdom/vnode").VNode} VNode
- * @typedef {import("../lib/snabbdom/vnode").VNodeData} VNodeData
- * @typedef {import("../lib/snabbdom/modules/attributes").Attrs} VNodeAttrs
- * @typedef {import("../lib/snabbdom/modules/props").Props} VNodeProps
- * @typedef {import("../lib/snabbdom/jsx").JsxVNodeChild} JsxVNodeChild
- * @typedef {import("../lib/snabbdom/jsx").JsxVNodeChildren} JsxVNodeChildren
- *
- * @typedef {Object} SyntheticEvent A simplified `Event`-like object.
- * @prop {boolean} [stop] if true, event delegation will stop
- * @prop {string} type the type of the event (ex: "click")
- * @prop {number} [timeStamp] the time when this event was fired
- * @prop {EventTarget|null} target the element this event is targeting
- * @prop {Event} [nativeEvent] the actual event triggering this dispatch
+ * @typedef {import('snabbdom').VNode} VNode
+ * @typedef {import('snabbdom').VNodeData} VNodeData
+ * @typedef {import('../types.d.ts').EventLike} EventLike
  *
  * @typedef {ReturnType<startDispatch>} Dispatcher
  */
+/**
+ * @template {keyof HTMLElementTagNameMap} T
+ * @typedef {import('../types.d.ts').HtmlAttributeSet<T>} HtmlAttributeSet
+ */
+/**
+ * @template {keyof HTMLElementTagNameMap} T
+ * @typedef {import('../types.d.ts').HtmlOptions<T>} HtmlOptions
+ */
+
+const patch = snabbdomInit([
+    snabbdomAttributes,
+    snabbdomProps,
+    snabbdomClass,
+    snabbdomStyle,
+    snabbdomDataset
+]);
+
+const evKeyPrefix = 'ev-';
+const evKeyRootPrefix = 'ev-root-';
 
 /**
  * Gets all children of a given element matching a given selector.
@@ -109,7 +116,7 @@ export const startDispatch = (anchor, data, view) => {
     /**
      * Delegates an event to handlers in the DOM and then (potentially) calls
      * `update` to patch the tree with snabbdom.
-     * @param {SyntheticEvent} ev the event we are dispatching
+     * @param {EventLike} ev the event to dispatch
      * @param {boolean} [isInternal] true only for internal events. Do not use.
      */
     const dispatch = (ev, isInternal) => {
@@ -127,9 +134,12 @@ export const startDispatch = (anchor, data, view) => {
             ev.target = target;
             const handlers = /** @type {any} */(target)[evKey] || [];
             for(let i = 0; handlers[i]; i += 1) {
-                const result = handlers[i](ev, target);
-                doUpdate = doUpdate
-                    || (isInternal ? result === true : result !== false);
+                const result = handlers[i](ev, target) ?? !isInternal;
+                if (result instanceof Promise) {
+                    result.then(x => (x ?? !isInternal) ? update() : null);
+                } else {
+                    doUpdate = doUpdate || !!result;
+                }
             }
             target = target.parentElement;
         }
@@ -138,9 +148,12 @@ export const startDispatch = (anchor, data, view) => {
             const handlers = /** @type {any} */(rootTarget)[evRootKey] || [];
             for(let i = 0; handlers[i]; i += 1) {
                 ev.target = rootTarget;
-                const result = handlers[i](ev, rootTarget);
-                doUpdate = doUpdate
-                    || (isInternal ? result === true : result !== false);
+                const result = handlers[i](ev, rootTarget) ?? !isInternal;
+                if (result instanceof Promise) {
+                    result.then(x => (x ?? !isInternal) ? update() : null);
+                } else {
+                    doUpdate = doUpdate || !!result;
+                }
             }
         }
 
@@ -173,8 +186,7 @@ export const startDispatch = (anchor, data, view) => {
      * Populates a Virtual Node Data object from a property/attribute map.
      * @template {keyof HTMLElementTagNameMap} T a union of all tag names
      * @param {T} tag the tag name to create (ex: "div")
-     * @param {import("../types").HtmlAttributeSet<T>} map a map of property
-     *  and attribute keys to their values.
+     * @param {HtmlAttributeSet<T>} map maps property/attribute names to values
      * @param {string[]} rootEvents event types to listen for on the root
      * @param {VNodeData} data the virtual node data to populate
      */
@@ -192,6 +204,8 @@ export const startDispatch = (anchor, data, view) => {
                 data.class = map.class;
             } else if (lowerKey === 'style' && map.style) {
                 data.style = map.style;
+            } else if (lowerKey === 'dataset' && map.dataset) {
+                data.dataset = map.dataset;
             } else if (lowerKey.startsWith('on')) {
                 const isRoot = lowerKey.substring(2, 6) === 'root';
                 const eventType = lowerKey.substring(isRoot ? 6 : 2);
@@ -233,7 +247,7 @@ export const startDispatch = (anchor, data, view) => {
      * The virtual hyperscript function.
      * @template {keyof HTMLElementTagNameMap} T a union of all tag names
      * @param {T} tag the tag name to create (ex: "div")
-     * @param {import("../types").HtmlOptions<T>} options attrs and children
+     * @param {HtmlOptions<T>} options attribute/property maps and child nodes
      */
     const h = (tag, options) => {
         const data = /** @type {VNodeData} */({ attrs: { }, props: { } });
@@ -258,7 +272,7 @@ export const startDispatch = (anchor, data, view) => {
             data.hook = { insert: boundHook, update: boundHook };
         }
 
-        return jsx(tag, data, children);
+        return snabbdomJsx(tag, data, children);
     };
 
     /**

@@ -4,7 +4,7 @@
         "allowJs": true,
         "checkJs": true,
         "strict": true,
-        "module": "esnext",
+        "moduleResolution": "nodenext",
         "jsx": "preserve",
         "noEmit": true,
         "maxNodeModuleJsDepth": 10,
@@ -13,7 +13,6 @@
     "include": [ ],
     "files": [
         "./data/download.js",
-        "./data/generateTypes.js",
         "./src/main.js"
     ]
 }

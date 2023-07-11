@@ -1,9 +1,9 @@
 import { $$ } from './dispatcher.js';
 
 /**
- * @typedef {import("./dispatcher").Dispatcher} Dispatcher
- * @typedef {import("./dispatcher").SyntheticEvent} SyntheticEvent
- * @typedef {import("../lib/snabbdom/vnode").VNode} VNode
+ * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
+ * @typedef {import('../types.d.ts').EventLike} EventLike
+ * @typedef {import('snabbdom').VNode} VNode
  */
 
 /**
@@ -47,7 +47,7 @@ export const segmentedControl = (dispatcher, choice) => {
 
     /**
      * Measure offsets if they don't exist. Then, set the isSetup flag if off.
-     * @param {SyntheticEvent} ev the event that triggers this setup
+     * @param {EventLike} ev the event that triggers this setup
      */
     const setup = ev => {
         const target = /** @type {HTMLElement|null} */(ev.target);

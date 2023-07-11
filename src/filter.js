@@ -1,9 +1,9 @@
 
 /**
- * @typedef {import("../types").Drink} Drink
+ * @typedef {import('../types.d.ts').Drink} Drink
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
- * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
+ * @typedef {import('snabbdom').VNode} VNode
  * @typedef {import('./main.js').FilterData} FilterData
  *
  * @typedef {['ingredient', 'vessel', 'filter', 'remove']} FilterTypeList a list

@@ -1,10 +1,11 @@
 
 /**
- * @typedef {import("../types").DrinkManifestUi} DrinkManifestUi
- * @typedef {import("../types").DrinkUi} DrinkUi
+ * @typedef {import('../types.d.ts').DrinkManifestUi} DrinkManifestUi
+ * @typedef {import('../types.d.ts').DrinkUi} DrinkUi
+ * @typedef {import('../types.d.ts').Drink} Drink
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
- * @typedef {import('../lib/snabbdom/vnode').VNode} VNode
+ * @typedef {import('snabbdom').VNode} VNode
  * @typedef {import('./shelf.js').IngredientManifest} IngredientManifest
  */
 
@@ -12,7 +13,7 @@ const imagePrefix = './data/images/';
 
 /**
  * Gets the number of owned ingredients in a given drink.
- * @param {import("../types").Drink} drink the drink to analyze
+ * @param {Drink} drink the drink to analyze
  * @param {IngredientManifest} have the map of all owned ingredient hashes
  * @return {number} the number of ingredients owned in `drink`
  */
