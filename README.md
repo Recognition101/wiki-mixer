@@ -28,20 +28,14 @@ It does the following:
 4. For each image, use [k-means clustering](https://en.wikipedia.org/wiki/K-means_clustering) in HSV space to pick 4 representative colors.
 5. Write all downloaded and computed data (cocktails, common ingredient names, image references, and colors) into the `./data/drinks.js` file.
 
-### Type Generator
+### Build / Verification Scripts
 
-Run with: `./data/generateTypes.js`.
+Each script can be run with `npm run <TaskName>`:
 
-It creates the file `./generatedTypes.d.ts`. This file extends [@types/react](https://www.npmjs.com/package/@types/react) with `onRoot` event handlers used to listen to events that occur on the root DOM element. For instance, `onRootResize` can be used to listen to `resize` events on the `window`.
+| Task Name      | Purpose                                                    |
+| -------------- | ---------------------------------------------------------- |
+| `lint-types`   | Uses TypeScript to strictly static-type-check all JS.      |
+| `build-lib`    | Builds `./src/lib/*` by running all `build-lib-*` tasks.   |
+| `build-lib-js` | Bundles `./build/lib-entry.js` &rarr; `./src/lib/lib.js`.  |
+| `build-lib-cp` | Copies `./build/lib-entry.js` &rarr; `./src/lib/lib.d.ts`. |
 
-### Type Linter
-
-Run with `npm run lint-types`.
-
-This uses TypeScript to verify that all JS files in this project are strictly statically typed.
-
-### Lib Updater
-
-Run with `./lib/update.sh`.
-
-This copies files from `./node_modules` into `./lib` so that they can be `import`ed. This avoids the need for a build or watcher task.
