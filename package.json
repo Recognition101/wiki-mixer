@@ -15,7 +15,7 @@
         "jpeg-js": "0.4.4",
         "parse5": "7.1.2",
         "pngjs": "7.0.0",
-        "rollup": "3.26.2",
+        "rollup": "3.29.5",
         "typescript": "5.0.4"
     },
     "dependencies": {
