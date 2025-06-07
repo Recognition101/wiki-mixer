@@ -1,18 +1,24 @@
 {
     "compilerOptions": {
-        "target": "esnext",
+        "target": "ESNext",
         "allowJs": true,
         "checkJs": true,
         "strict": true,
-        "moduleResolution": "nodenext",
-        "jsx": "preserve",
         "noEmit": true,
-        "maxNodeModuleJsDepth": 10,
-        "lib": ["ESNext", "DOM"]
+        "declaration": true,
+        "maxNodeModuleJsDepth": 5,
+        "lib": [ "esnext", "DOM" ],
+        "baseUrl": ".",
+        "paths": { },
+        "allowSyntheticDefaultImports": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true
     },
     "include": [ ],
     "files": [
         "./data/download.js",
+        "./src/dispatcher-test.js",
         "./src/main.js"
     ]
 }

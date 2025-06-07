@@ -3,20 +3,21 @@
     "version": "2.0.0",
     "type": "module",
     "scripts": {
-        "lint-types": "npx tsc -p ./",
+        "lint": "npm run lint-ts",
+        "lint-ts": "npx tsc -p ./",
         "build-lib": "npm run build-lib-cp && npm run build-lib-js",
         "build-lib-js": "npx rollup -c ./build/rollup.config.js",
         "build-lib-cp": "cp ./build/lib-entry.js ./src/lib/lib.d.ts"
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "15.1.0",
-        "@types/node": "20.4.1",
+        "@types/node": "22.15.30",
         "@types/pngjs": "6.0.1",
         "jpeg-js": "0.4.4",
         "parse5": "7.1.2",
         "pngjs": "7.0.0",
         "rollup": "3.29.5",
-        "typescript": "5.0.4"
+        "typescript": "5.8.3"
     },
     "dependencies": {
         "snabbdom": "3.5.1"

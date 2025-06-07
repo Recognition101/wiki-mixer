@@ -1,6 +1,6 @@
 
 /**
- * @typedef {import('../types.d.ts').Drink} Drink
+ * @typedef {import('../types.ts').Drink} Drink
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('snabbdom').VNode} VNode

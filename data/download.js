@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-/// <reference path="../types.d.ts" />
 
 import * as fs from 'fs';
 import * as http from 'http';
@@ -10,8 +9,8 @@ import * as parse5 from 'parse5';
 import { getColors } from './getColors.js';
 
 /**
- * @typedef {import('../types.d.ts').DrinkManifest} DrinkManifest
- * @typedef {import('../types.d.ts').Drink} Drink
+ * @typedef {import('../types').DrinkManifest} DrinkManifest
+ * @typedef {import('../types').Drink} Drink
  *
  * @typedef {Object} P5Node
  * @prop {string} [nodeName]

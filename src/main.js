@@ -1,4 +1,3 @@
-/// <reference path="../types.d.ts" />
 import { manifest } from '../data/drinks.js';
 import { startDispatch, $$ } from './dispatcher.js';
 import { segmentedControl, reset as scReset } from './segmentedControl.js';
@@ -15,7 +14,7 @@ import { preUpdate as preUpdateFilter, filterDrinks, uiFilters }
  */
 
 /**
- * @typedef {import('../types.d.ts').DrinkManifestUi} DrinkManifestUi
+ * @typedef {import('../types').DrinkManifestUi} DrinkManifestUi
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('snabbdom').VNode} VNode

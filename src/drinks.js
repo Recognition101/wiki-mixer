@@ -1,8 +1,8 @@
 
 /**
- * @typedef {import('../types.d.ts').DrinkManifestUi} DrinkManifestUi
- * @typedef {import('../types.d.ts').DrinkUi} DrinkUi
- * @typedef {import('../types.d.ts').Drink} Drink
+ * @typedef {import('../types').DrinkManifestUi} DrinkManifestUi
+ * @typedef {import('../types').DrinkUi} DrinkUi
+ * @typedef {import('../types').Drink} Drink
  *
  * @typedef {import('./dispatcher.js').Dispatcher} Dispatcher
  * @typedef {import('snabbdom').VNode} VNode

@@ -11,17 +11,17 @@ import {
 /**
  * @typedef {import('snabbdom').VNode} VNode
  * @typedef {import('snabbdom').VNodeData} VNodeData
- * @typedef {import('../types.d.ts').EventLike} EventLike
+ * @typedef {import('../types').EventLike} EventLike
  *
  * @typedef {ReturnType<startDispatch>} Dispatcher
  */
 /**
  * @template {keyof HTMLElementTagNameMap} T
- * @typedef {import('../types.d.ts').HtmlAttributeSet<T>} HtmlAttributeSet
+ * @typedef {import('../types').HtmlAttributeSet<T>} HtmlAttributeSet
  */
 /**
  * @template {keyof HTMLElementTagNameMap} T
- * @typedef {import('../types.d.ts').HtmlOptions<T>} HtmlOptions
+ * @typedef {import('../types').HtmlOptions<T>} HtmlOptions
  */
 
 const patch = snabbdomInit([
@@ -211,7 +211,8 @@ export const startDispatch = (anchor, data, view) => {
                 const eventType = lowerKey.substring(isRoot ? 6 : 2);
                 const prefix = isRoot ? evKeyRootPrefix : evKeyPrefix;
 
-                data.props[prefix + eventType] = boxArray(value);
+                const valueArray = Array.isArray(value) ? value : [ value ];
+                data.props[prefix + eventType] = valueArray;
 
                 if (!isRoot && (listenTo[eventType] || 0) < 1) {
                     const capture = isCaptured(eventType);

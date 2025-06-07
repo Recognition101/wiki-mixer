@@ -49,7 +49,8 @@ type HtmlHandler<T extends keyof HTMLElementTagNameMap> =
     (ev: EventLike, target: HTMLElementTagNameMap[T]) =>
         boolean | void | Promise<boolean|void>;
 
-type HtmlStyle = { [ key in keyof CSSStyleDeclaration & string ]?: string };
+type HtmlStyle = { [ key in keyof CSSStyleDeclaration & string ]?: string }
+    & { [key: `--${string}`]: string };
 
 /** Extra attributes our `h` DOM-construction function can set. */
 type HtmlAdditionExtras<T extends keyof HTMLElementTagNameMap> = {
@@ -59,7 +60,7 @@ type HtmlAdditionExtras<T extends keyof HTMLElementTagNameMap> = {
     dataset: {[key: string]: string};
     focused: boolean;
     style: HtmlStyle;
-    onRootUpdate: HtmlHandler<T>;
+    onRootUpdate: MaybeArray<HtmlHandler<T>>;
 
     /** Missing HTML Properties */
     placeholder: string;
@@ -91,10 +92,10 @@ type GetEventNames<T extends string> = T extends `on${infer N}` ? N : never;
 type HtmlAllElements = HTMLElementTagNameMap[keyof HTMLElementTagNameMap];
 type HtmlAllEventNames = GetEventNames<keyof HtmlAllElements>;
 type HtmlAdditionLocalHandlers<T extends keyof HTMLElementTagNameMap> = {
-    [key in `on${Capitalize<HtmlAllEventNames>}`]: HtmlHandler<T>;
+    [key in `on${Capitalize<HtmlAllEventNames>}`]: MaybeArray<HtmlHandler<T>>;
 };
 type HtmlAdditionGlobalHandlers<T extends keyof HTMLElementTagNameMap> = {
-    [key in `onRoot${Capitalize<HtmlAllEventNames>}`]: HtmlHandler<T>;
+    [key in `onRoot${Capitalize<HtmlAllEventNames>}`]: MaybeArray<HtmlHandler<T>>;
 };
 type HtmlAdditions<T extends keyof HTMLElementTagNameMap> =
     HtmlAdditionExtras<T> &
